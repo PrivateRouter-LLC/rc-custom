@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # PrivateRouter Update Script
 
 # Verify we are connected to the Internet
@@ -171,6 +171,7 @@ if [ -f /etc/pr-mini ]; then
     opkg install urandom-seed urngd usbids usbmuxd usbutils usign vpn-policy-routing vpnbypass vpnc-scripts watchcat wireguard-tools wireless-regdb wpad-basic-wolfssl
     opkg install zlib kmod-usb-storage block-mount luci-app-minidlna kmod-fs-ext4 kmod-fs-exfat fdisk luci-compat luci-lib-ipkg luci-proto-wireguard luci-app-wireguard luci-i18n-wireguard-en vpn-policy-routing vpnbypass vpnc-scripts watchcat wg-installer-client
     opkg install wireguard-tools luci-app-openvpn luci-app-vpn-policy-routing luci-app-vpnbypass luci-app-watchcat luci-app-wireguard
+    opkg install jshn ip ipset iptables iptables-mod-tproxy resolveip dnsmasq-full
 
 else
 
