@@ -168,8 +168,6 @@ opkg install libubus-lua libubus20210630 libuci20130104 libuclient20201210 libus
 opkg install luci-lib-base luci-lib-ip luci-lib-ipkg luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-network luci-mod-status luci-mod-system
 
 opkg install zlib kmod-usb-storage block-mount luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk
-echo "Installing TorGuard Wireguard..."
-opkg install /etc/luci-app-tgwireguard_1.0.3-1_all.ipk
 
 ## V2RAYA INSTALLER ##
 echo "Installing V2rayA..."
