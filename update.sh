@@ -17,8 +17,8 @@ elif [[ "${BOARD_CHECK}" == *"GL-AR750S"* ]]; then
     bash /root/rc-custom/ar750s.sh
 elif [[ "${BOARD_CHECK}" == *"WRT32X"* ]]; then
     bash /root/rc-custom/wrt32x.sh
-elif [[ "${BOARD_CHECK}" == *"Archer C7"* ]]; then
-    bash /root/rc-custom/archerc7.sh
+elif [[ "${BOARD_CHECK}" == *"Archer C7 v5"* ]]; then
+    bash /root/rc-custom/archerc7v5.sh
 else
     bash /root/rc-custom/generic.sh
 fi
