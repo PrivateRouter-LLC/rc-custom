@@ -33,6 +33,8 @@ elif [[ "${BOARD_CHECK}" == *"GL-AR750S (NOR)"* ]]; then
     bash /root/rc-custom/ar750s_ext.sh
 elif [[ "${BOARD_CHECK}" == *"WRT32X"* ]]; then
     bash /root/rc-custom/wrt32x.sh
+elif [[ "${BOARD_CHECK}" == *"RT-AC88U"* ]]; then
+    bash /root/rc-custom/ac88u.sh
 elif [[ "${BOARD_CHECK}" == *"1200ac"* ]]; then
     bash /root/rc-custom/wrt1200ac.sh
 elif [[ "${BOARD_CHECK}" == *"1900ac"* ]]; then
