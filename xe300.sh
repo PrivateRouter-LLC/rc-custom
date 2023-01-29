@@ -147,6 +147,10 @@ else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
 
+log_say "Installing opkg packages"
+opkg --no-check-certificate update
+opkg --no-check-certificate install wget-ssl unzip ca-bundle ca-certificates
+
 # Update and install all of our packages
 log_say "updating all packages!"
 
@@ -176,8 +180,6 @@ ifconfig wwan0 up
 ## V2RAYA INSTALLER ##
 log_say "Installing V2rayA..."
 ## download
-
-opkg update; opkg install unzip wget-ssl
 
 ## Remove DNSMasq
 
