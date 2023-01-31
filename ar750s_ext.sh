@@ -147,6 +147,10 @@ else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
 
+log_say "Installing opkg packages"
+opkg --no-check-certificate update
+opkg --no-check-certificate install wget-ssl unzip ca-bundle ca-certificates
+
 # Update and install all of our packages
 log_say "updating all packages!"
 
@@ -165,10 +169,8 @@ opkg install kmod-rt2800-usb rt2800-usb-firmware kmod-cfg80211 kmod-lib80211 kmo
 opkg install luci-theme-bootstrap kmod-usb-storage kmod-usb-ohci kmod-usb-uhci e2fsprogs fdisk resize2fs htop debootstrap luci-compat luci-lib-ipkg dnsmasq
 
 ## V2RAYA INSTALLER ##
-echo "Installing V2rayA..."
+log_say "Installing V2rayA..."
 ## download
-
-opkg update; opkg install unzip wget-ssl
 
 ## Remove DNSMasq
 
@@ -180,6 +182,6 @@ opkg install v2raya
 
 opkg install /etc/luci-app-v2raya_6_all.ipk
 
-echo "PrivateRouter update complete!"
+log_say "PrivateRouter update complete!"
 
 exit 0
