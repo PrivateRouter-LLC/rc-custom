@@ -5,6 +5,9 @@
 BOARD_CHECK="$(cat /tmp/sysinfo/model)"
 chmod +x /root/rc-custom/*.sh
 
+# Print current time to a temp file for tracking
+date > /tmp/last_update
+
 if [[ "${BOARD_CHECK}" == *"GL-MT300N-V2"* ]]; then
     bash /root/rc-custom/mt300nv2.sh
 elif [[ "${BOARD_CHECK}" == *"GL-AR750S (NOR)"* ]]; then
