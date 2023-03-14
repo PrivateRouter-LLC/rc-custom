@@ -192,9 +192,6 @@ opkg install uboot-envtools ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-
 
 opkg install wireguard-tools wireless-regdb wpad-basic-wolfssl zlib kmod-usb-storage block-mount samba4-server luci-app-samba4 luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk
 
-echo "Installing TorGuard Wireguard..."
-opkg install /etc/luci-app-tgwireguard_1.0.3-1_all.ipk
-
 ## V2RAYA INSTALLER ##
 echo "Installing V2rayA..."
 ## download
