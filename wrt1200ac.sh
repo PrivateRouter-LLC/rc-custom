@@ -178,11 +178,9 @@ opkg install kmod-usb-net-cdc-ether kmod-usb-net-cdc-subset kmod-nls-base kmod-u
 
 opkg install usbmuxd libimobiledevice usbutils luci-app-nlbwmon luci-app-adblock nano ttyd fail2ban speedtest-netperf opkg install vsftpd samba36-server luci-app-samba
 
-## V2RAYA INSTALLER ##
-log_say "Installing V2rayA..."
+## V2RAYA INSTALLER PREP ##
+log_say "Preparing for V2rayA..."
 ## download
-
-opkg update; opkg install unzip wget-ssl
 
 ## Remove DNSMasq
 
@@ -190,10 +188,11 @@ opkg remove dnsmasq
 
 opkg install dnsmasq-full
 
-opkg install v2raya
+## INSTALL ROUTER APP STORE ##
+log_say "Installing Router App Store..."
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard tgwireguard
 
-opkg install /etc/luci-app-v2raya_6_all.ipk
+log_say "PrivateRouter update complete!"
 
-echo "PrivateRouter update complete!"
 
 exit 0
