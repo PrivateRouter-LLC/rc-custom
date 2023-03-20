@@ -177,8 +177,8 @@ ifconfig wwan0 down
 echo Y > /sys/class/net/wwan0/qmi/raw_ip
 ifconfig wwan0 up
 
-## V2RAYA INSTALLER ##
-log_say "Installing V2rayA..."
+## V2RAYA INSTALLER PREP ##
+log_say "Preparing for V2rayA..."
 ## download
 
 ## Remove DNSMasq
@@ -187,9 +187,9 @@ opkg remove dnsmasq
 
 opkg install dnsmasq-full
 
-opkg install v2raya
-
-opkg install /etc/luci-app-v2raya_6_all.ipk
+## INSTALL ROUTER APP STORE ##
+log_say "Installing Router App Store..."
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
 
 log_say "PrivateRouter update complete!"
 
