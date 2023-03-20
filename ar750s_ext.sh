@@ -168,8 +168,8 @@ opkg install openwrt-keyring opkg ppp ppp-mod-pppoe procd px5g-wolfssl kmod-usb-
 opkg install kmod-rt2800-usb rt2800-usb-firmware kmod-cfg80211 kmod-lib80211 kmod-mac80211 kmod-rtl8192cu luci-base luci-ssl luci-mod-admin-full
 opkg install luci-theme-bootstrap kmod-usb-storage kmod-usb-ohci kmod-usb-uhci e2fsprogs fdisk resize2fs htop debootstrap luci-compat luci-lib-ipkg dnsmasq
 
-## V2RAYA INSTALLER ##
-log_say "Installing V2rayA..."
+## V2RAYA INSTALLER PREP ##
+log_say "Preparing for V2rayA..."
 ## download
 
 ## Remove DNSMasq
@@ -178,9 +178,9 @@ opkg remove dnsmasq
 
 opkg install dnsmasq-full
 
-opkg install v2raya
-
-opkg install /etc/luci-app-v2raya_6_all.ipk
+## INSTALL ROUTER APP STORE ##
+log_say "Installing Router App Store..."
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard tgwireguard
 
 log_say "PrivateRouter update complete!"
 
