@@ -164,21 +164,20 @@ opkg install luci-mod-network luci-mod-status luci-mod-system luci-proto-ipv6 lu
 
 opkg install luci-theme-bootstrap luci-theme-openwrt-2020 luci-app-openvpn wireguard-tools luci-app-wireguard minidlna openvpn-openssl mtd netifd odhcp6c odhcpd-ipv6only openwrt-keyring opkg ppp ppp-mod-pppoe procd px5g-wolfssl
 
-## V2RAYA INSTALLER ##
-log_say "Installing V2rayA..."
-
+## V2RAYA INSTALLER PREP ##
+log_say "Preparing for V2rayA..."
 ## download
-opkg update; opkg install unzip wget-ssl
 
 ## Remove DNSMasq
+
 opkg remove dnsmasq
 
 opkg install dnsmasq-full
 
-opkg install v2raya
+## INSTALL ROUTER APP STORE ##
+log_say "Installing Router App Store..."
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard tgwireguard
 
-opkg install /etc/luci-app-v2raya_6_all.ipk
-
-echo "PrivateRouter update complete!"
+log_say "PrivateRouter update complete!"
 
 exit 0
