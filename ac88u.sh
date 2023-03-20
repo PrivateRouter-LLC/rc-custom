@@ -190,13 +190,11 @@ opkg install rpcd-mod-rpcsys rpcd-mod-rrdns rsync samba4-libs samba4-server shad
 
 opkg install uboot-envtools ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus urandom-seed urngd usbutils usign vpn-policy-routing vpnbypass vpnc-scripts watchcat wg-installer-client wget-ssl
 
-opkg install wireguard-tools wireless-regdb wpad-basic-wolfssl zlib kmod-usb-storage block-mount samba4-server luci-app-samba4 luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk
+opkg install wireguard-tools unzip wget-ssl wireless-regdb wpad-basic-wolfssl zlib kmod-usb-storage block-mount samba4-server luci-app-samba4 luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk
 
-## V2RAYA INSTALLER ##
-echo "Installing V2rayA..."
+## V2RAYA INSTALLER PREP ##
+log_say "Preparing for V2rayA..."
 ## download
-
-opkg update; opkg install unzip wget-ssl
 
 ## Remove DNSMasq
 
@@ -204,10 +202,10 @@ opkg remove dnsmasq
 
 opkg install dnsmasq-full
 
-opkg install v2raya
+## INSTALL ROUTER APP STORE ##
+log_say "Installing Router App Store..."
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard tgwireguard
 
-opkg install /etc/luci-app-v2raya_6_all.ipk
-
-echo "PrivateRouter update complete!"
+log_say "PrivateRouter update complete!"
 
 exit 0
