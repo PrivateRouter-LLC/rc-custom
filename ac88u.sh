@@ -192,6 +192,10 @@ opkg install uboot-envtools ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-
 
 opkg install wireguard-tools unzip wget-ssl wireless-regdb wpad-basic-wolfssl zlib kmod-usb-storage block-mount samba4-server luci-app-samba4 luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk
 
+## Install A2 rev  HW packages ##
+
+opkg install brcmfmac-firmware-4366b1-pcie b43legacy-firmware brcmfmac-firmware-4329-sdio brcmfmac-firmware-43430a0-sdio brcmsmac-firmware
+
 ## V2RAYA INSTALLER PREP ##
 log_say "Preparing for V2rayA..."
 ## download
