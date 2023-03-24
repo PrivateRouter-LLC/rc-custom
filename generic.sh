@@ -257,6 +257,12 @@ opkg update
     opkg install luci-app-v2raya
 }
 
+#Adding Cloud Backgrounds
+tar xzvf /etc/logo.tar.gz -C /www/luci-static/argon/
+tar xzvf /etc/cloud.tar.gz -C /www/luci-static/argon/background/
+tar xzvf /etc/cloud1.tar.gz -C /www/luci-static/argon/background/
+tar xzvf /etc/cloud2.tar.gz -C /www/luci-static/argon/background/
+
 log_say "PrivateRouter update complete!"
 
 exit 0
