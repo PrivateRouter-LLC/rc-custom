@@ -210,9 +210,9 @@ else
     opkg install luci-app-syncthing luci-app-diskman luci-app-jellyfin luci-app-homeassistant luci-app-poweroff tgdocker kmod-veth uxc procd-ujail procd-ujail-console
     
     # Install extra languages
-    log_say "Installing extra languages"
-    opkg install luci-i18n-base-ar luci-i18n-base-bg luci-i18n-base-bn luci-i18n-base-ca luci-i18n-base-cs luci-i18n-base-da luci-i18n-base-de luci-i18n-base-el luci-i18n-base-en luci-i18n-base-es luci-i18n-base-fi luci-i18n-base-fr luci-i18n-base-he luci-i18n-base-hi luci-i18n-base-hu luci-i18n-base-it luci-i18n-base-ja 
-    opkg install  luci-i18n-base-ko luci-i18n-base-mr luci-i18n-base-ms luci-i18n-base-nl luci-i18n-base-no luci-i18n-base-pl luci-i18n-base-pt luci-i18n-base-pt-br luci-i18n-base-ro luci-i18n-base-ru luci-i18n-base-sk luci-i18n-base-sv luci-i18n-base-tr luci-i18n-base-uk luci-i18n-base-vi luci-i18n-base-zh-cn luci-i18n-base-zh-tw
+    #log_say "Installing extra languages"
+    #opkg install luci-i18n-base-ar luci-i18n-base-bg luci-i18n-base-bn luci-i18n-base-ca luci-i18n-base-cs luci-i18n-base-da luci-i18n-base-de luci-i18n-base-el luci-i18n-base-en luci-i18n-base-es luci-i18n-base-fi luci-i18n-base-fr luci-i18n-base-he luci-i18n-base-hi luci-i18n-base-hu luci-i18n-base-it luci-i18n-base-ja 
+    #opkg install  luci-i18n-base-ko luci-i18n-base-mr luci-i18n-base-ms luci-i18n-base-nl luci-i18n-base-no luci-i18n-base-pl luci-i18n-base-pt luci-i18n-base-pt-br luci-i18n-base-ro luci-i18n-base-ru luci-i18n-base-sk luci-i18n-base-sv luci-i18n-base-tr luci-i18n-base-uk luci-i18n-base-vi luci-i18n-base-zh-cn luci-i18n-base-zh-tw
 
 # End of our /etc/pr-mini check
 fi
