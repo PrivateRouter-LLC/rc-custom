@@ -206,8 +206,7 @@ else
     opkg install rpcd-mod-rpcsys rpcd-mod-rrdns rsync samba4-libs samba4-server nano sshfs terminfo ubi-utils kmod-usb-net-asix-ax88179 luci-mod-dashboard luci-app-commands
     opkg install uboot-envtools ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus urandom-seed urngd usbutils usign vpnbypass vpnc-scripts watchcat wg-installer-client wget-ssl
     opkg install wireguard-tools wireless-regdb wpad zlib kmod-usb-storage block-mount samba4-server luci-app-samba4 luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk luci-app-nlbwmon luci-app-vnstat
-    opkg install luci-lib-taskd taskd tgappstore luci-lib-xterm luci-lib-fs luci-app-filetransfer luci-app-wizard luci-app-docker-backup luci-app-shortcutmenu tgwireguard luci-app-nextcloud
-    opkg install luci-app-syncthing luci-app-diskman luci-app-jellyfin luci-app-homeassistant luci-app-poweroff tgdocker kmod-veth uxc procd-ujail procd-ujail-console
+
         
     # Install extra languages
     #log_say "Installing extra languages"
@@ -235,6 +234,8 @@ opkg install iptables-mod-extra kmod-br-netfilter kmod-ikconfig kmod-nf-conntrac
     opkg install luci-app-dockerman
     tar xzvf /etc/dockerman.tar.gz -C /usr/lib/lua/luci/model/cbi/dockerman/
     chmod +x /usr/bin/dockerdeploy
+    opkg install luci-lib-taskd taskd tgappstore luci-lib-xterm luci-lib-fs luci-app-filetransfer luci-app-wizard luci-app-docker-backup luci-app-shortcutmenu tgwireguard luci-app-nextcloud
+    opkg install luci-app-syncthing luci-app-diskman luci-app-jellyfin luci-app-homeassistant luci-app-poweroff tgdocker kmod-veth uxc procd-ujail procd-ujail-console
 }
 
 sed -i '/root/s/\/bin\/ash/\/bin\/bash/g' /etc/passwd
