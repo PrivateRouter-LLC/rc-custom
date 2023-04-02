@@ -208,7 +208,7 @@ else
     opkg install wireguard-tools wireless-regdb wpad zlib kmod-usb-storage block-mount samba4-server luci-app-samba4 luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk luci-app-nlbwmon luci-app-vnstat
     opkg install luci-lib-taskd taskd tgappstore luci-lib-xterm luci-lib-fs luci-app-filetransfer luci-app-wizard luci-app-docker-backup luci-app-shortcutmenu tgwireguard luci-app-nextcloud
     opkg install luci-app-syncthing luci-app-diskman luci-app-jellyfin luci-app-homeassistant luci-app-poweroff tgdocker kmod-veth uxc procd-ujail procd-ujail-console
-    
+        
     # Install extra languages
     #log_say "Installing extra languages"
     #opkg install luci-i18n-base-ar luci-i18n-base-bg luci-i18n-base-bn luci-i18n-base-ca luci-i18n-base-cs luci-i18n-base-da luci-i18n-base-de luci-i18n-base-el luci-i18n-base-en luci-i18n-base-es luci-i18n-base-fi luci-i18n-base-fr luci-i18n-base-he luci-i18n-base-hi luci-i18n-base-hu luci-i18n-base-it luci-i18n-base-ja 
@@ -225,6 +225,7 @@ opkg install luci-app-firewall
 opkg install luci-i18n-firewall-en
 opkg install luci
 opkg install luci-ssl
+opkg install iptables-mod-extra kmod-br-netfilter kmod-ikconfig kmod-nf-conntrack-netlink kmod-nf-ipvs kmod-nf-nat iptables-zz-legacy
 
 # Mini Routers do not install docker packages
 [ -f /etc/pr-mini ] || {
