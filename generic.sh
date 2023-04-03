@@ -235,7 +235,27 @@ opkg install iptables-mod-extra kmod-br-netfilter kmod-ikconfig kmod-nf-conntrac
     tar xzvf /etc/dockerman.tar.gz -C /usr/lib/lua/luci/model/cbi/dockerman/
     chmod +x /usr/bin/dockerdeploy
     opkg install luci-lib-taskd taskd tgappstore luci-lib-xterm luci-lib-fs luci-app-filetransfer luci-app-wizard luci-app-docker-backup luci-app-shortcutmenu tgwireguard luci-app-nextcloud
-    opkg install luci-app-syncthing luci-app-diskman luci-app-jellyfin luci-app-homeassistant luci-app-poweroff tgdocker kmod-veth uxc procd-ujail procd-ujail-console
+    opkg install syncthing luci-app-syncthing luci-app-diskman luci-app-jellyfin luci-app-homeassistant luci-app-poweroff tgdocker kmod-veth uxc procd-ujail procd-ujail-console
+    opkg install /etc/apps/tgappstore_4.0.0-6_all.ipk
+    opkg install /etc/apps/luci-app-wizard_git-23.076.65670-1fdceb7_all.ipk
+    opkg install /etc/apps/luci-app-simplex_git-23.076.66121-e78b3f9_all.ipk
+    opkg install /etc/apps/luci-app-photoprism_230320.42282_all.ipk
+    opkg install /etc/apps/luci-app-librespeed_git-23.076.66121-e78b3f9_all.ipk
+    opkg install /etc/apps/luci-app-libreddit_git-23.076.66121-e78b3f9_all.ipk
+    opkg install /etc/apps/luci-app-nodered_git-23.076.66121-e78b3f9_all.ipk
+    opkg install /etc/apps/luci-app-diskman_git-23.076.66516-e0ded33_all.ipk
+    opkg install luci-app-qbittorrentdocker
+    opkg install luci-app-megamedia
+    opkg install luci-app-whoogle
+    opkg install luci-app-nfs
+    opkg install luci-app-webtop
+    opkg install luci-app-alltube
+    opkg install luci-app-emby
+    opkg install luci-app-joplin
+    opkg install luci-app-bookstack
+    opkg install luci-app-filebrowser
+    opkg install luci-app-heimdall
+    opkg install luci-app-seafile
 }
 
 sed -i '/root/s/\/bin\/ash/\/bin\/bash/g' /etc/passwd
@@ -259,12 +279,8 @@ opkg update
     opkg install luci-app-v2raya
 }
 
-#Adding Cloud Backgrounds
+#Adding logo
 tar xzvf /etc/logo.tar.gz -C /www/luci-static/argon/
-tar xzvf /etc/cloud.tar.gz -C /www/luci-static/argon/background/
-tar xzvf /etc/cloud1.tar.gz -C /www/luci-static/argon/background/
-tar xzvf /etc/cloud2.tar.gz -C /www/luci-static/argon/background/
-opkg install /etc/tgappstore_3.0.0-6_all.ipk
 
 log_say "PrivateRouter update complete!"
 
