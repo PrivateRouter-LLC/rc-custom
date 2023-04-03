@@ -236,7 +236,7 @@ opkg install iptables-mod-extra kmod-br-netfilter kmod-ikconfig kmod-nf-conntrac
     chmod +x /usr/bin/dockerdeploy
     opkg install luci-lib-taskd taskd tgappstore luci-lib-xterm luci-lib-fs luci-app-filetransfer luci-app-wizard luci-app-docker-backup luci-app-shortcutmenu tgwireguard luci-app-nextcloud
     opkg install syncthing luci-app-syncthing luci-app-diskman luci-app-jellyfin luci-app-homeassistant luci-app-poweroff tgdocker kmod-veth uxc procd-ujail procd-ujail-console
-    opkg install /etc/apps/tgappstore_4.0.0-6_all.ipk
+    opkg install /etc/apps/tgappstore_5.0.0-6_all.ipk
     opkg install /etc/apps/luci-app-wizard_git-23.076.65670-1fdceb7_all.ipk
     opkg install /etc/apps/luci-app-simplex_git-23.076.66121-e78b3f9_all.ipk
     opkg install /etc/apps/luci-app-photoprism_230320.42282_all.ipk
