@@ -1,18 +1,36 @@
 #!/usr/bin/env bash
-# /etc/udpate.sh PrivateRouter Update Script
-
-# Verify we are connected to the Internet
-is_connected() {
-    ping -q -c3 1.1.1.1 >/dev/null 2>&1
-    return $?
-}
 
 # Log to the system log and echo if needed
 log_say()
 {
-    echo "${1}"
-    logger "${1}"
+    SCRIPT_NAME=$(basename "$0")
+    echo "${SCRIPT_NAME}: ${1}"
+    logger "${SCRIPT_NAME}: ${1}"
 }
+
+# Command to wait for Internet connection
+wait_for_internet() {
+    while ! ping -q -c3 1.1.1.1 >/dev/null 2>&1; do
+        log_say "Waiting for Internet connection..."
+        sleep 1
+    done
+    log_say "Internet connection established"
+}
+
+# Wait for Internet connection
+wait_for_internet
+
+# Command to wait for opkg to finish
+wait_for_opkg() {
+  while pgrep -x opkg >/dev/null; do
+    log_say "Waiting for opkg to finish..."
+    sleep 1
+  done
+  log_say "opkg is released, our turn!"
+}
+
+# Wait for opkg to finish
+wait_for_opkg
 
 log_say "                                                                      "
 log_say " ███████████             ███                         █████            "
@@ -36,9 +54,6 @@ log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░�
 
 # Set our router's dns
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
-
-# Check if we are connected, if not, exit
-[ is_connected ] || { log_say "We are not connected to the Internet to run our update script." ; exit 0; }
 
 # Set this to 0 to disable Tankman theme
 TANKMAN_FLAG=1
@@ -164,21 +179,10 @@ opkg install openwrt-keyring opkg ppp ppp-mod-pppoe procd px5g-wolfssl kmod-usb-
 opkg install kmod-rt2800-usb rt2800-usb-firmware kmod-cfg80211 kmod-lib80211 kmod-mac80211 kmod-rtl8192cu luci-base luci-ssl luci-mod-admin-full
 opkg install luci-theme-bootstrap kmod-usb-storage kmod-usb-ohci kmod-usb-uhci e2fsprogs fdisk resize2fs htop debootstrap luci-compat luci-lib-ipkg dnsmasq
 
-## V2RAYA INSTALLER PREP ##
-log_say "Preparing for V2rayA..."
-## download
-
 ## Remove DNSMasq
-
 opkg remove dnsmasq
-
 opkg install dnsmasq-full
 
-## INSTALL ROUTER APP STORE ##
-log_say "Installing Router App Store..."
-opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard tgwireguard
-
 log_say "PrivateRouter update complete!"
-
 
 exit 0
