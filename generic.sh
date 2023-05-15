@@ -38,7 +38,14 @@ log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░�
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
 
 # Check if we are connected, if not, exit
-[ is_connected ] || { log_say "We are not connected to the Internet to run our update script." ; exit 0; }
+#[ is_connected ] || { log_say "We are not connected to the Internet to run our update script." ; exit 0; }
+
+# Check and wait for Internet connection
+while ! is_connected; do
+    log_say "Waiting for Internet connection..."
+    sleep 1
+done
+log_say "Internet connection established"
 
 # Set this to 0 to disable Tankman theme
 TANKMAN_FLAG=1
@@ -234,51 +241,9 @@ opkg install iptables-mod-extra kmod-br-netfilter kmod-ikconfig kmod-nf-conntrac
     opkg install luci-app-dockerman
     tar xzvf /etc/dockerman.tar.gz -C /usr/lib/lua/luci/model/cbi/dockerman/
     chmod +x /usr/bin/dockerdeploy
-    opkg install luci-lib-taskd taskd tgappstore luci-lib-xterm luci-lib-fs luci-app-filetransfer luci-app-docker-backup luci-app-shortcutmenu tgwireguard luci-app-nextcloud
-    opkg install luci-app-jellyfin luci-app-homeassistant luci-app-poweroff tgdocker kmod-veth uxc procd-ujail procd-ujail-console
-    opkg install /etc/apps/tgappstore_5.0.0-6_all.ipk
-    opkg install /etc/apps/luci-app-wizard_git-23.076.65670-1fdceb7_all.ipk
-    opkg install /etc/apps/luci-app-simplex_git-23.076.66121-e78b3f9_all.ipk
-    opkg install /etc/apps/luci-app-photoprism_230320.42282_all.ipk
-    opkg install /etc/apps/luci-app-librespeed_git-23.076.66121-e78b3f9_all.ipk
-    opkg install /etc/apps/luci-app-libreddit_git-23.076.66121-e78b3f9_all.ipk
-    opkg install /etc/apps/luci-app-nodered_git-23.076.66121-e78b3f9_all.ipk
-    opkg install /etc/apps/luci-app-diskman_git-23.076.66516-e0ded33_all.ipk
-    opkg install /etc/apps/luci-app-syncthing_git-23.076.65962-cf964c0_all.ipk
-    opkg install luci-app-qbittorrentdocker
-    opkg install luci-app-megamedia
-    opkg install luci-app-whoogle
-    opkg install luci-app-nfs
-    opkg install luci-app-webtop
-    opkg install luci-app-alltube
-    opkg install luci-app-emby
-    opkg install luci-app-joplin
-    opkg install luci-app-bookstack
-    opkg install luci-app-filebrowser
-    opkg install luci-app-heimdall
-    opkg install luci-app-seafile
 }
 
 sed -i '/root/s/\/bin\/ash/\/bin\/bash/g' /etc/passwd
-
-# Always install our repo's public key to the router
-log_say "Installing v2raya repo public key"
-wget -qO /tmp/v2raya.pub https://osdn.net/projects/v2raya/storage/openwrt/v2raya.pub
-opkg-key add /tmp/v2raya.pub
-rm /tmp/v2raya.pub
-
-# Always update the repo
-log_say "Add v2raya repo"
-sed -i '/v2raya/d' /etc/opkg/customfeeds.conf 
-echo "src/gz v2raya https://osdn.net/projects/v2raya/storage/openwrt/$(. /etc/openwrt_release && echo "$DISTRIB_ARCH")" >> /etc/opkg/customfeeds.conf
-
-# This script is used to update the packages in the repo
-opkg update
-[ $? -eq 0 ] && {
-    log_say "Installing v2raya and luci-app-v2raya"
-    opkg install v2raya
-    opkg install luci-app-v2raya
-}
 
 #Adding logo
 tar xzvf /etc/logo.tar.gz -C /www/luci-static/argon/
