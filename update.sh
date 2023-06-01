@@ -46,7 +46,8 @@ elif [[ "${BOARD_CHECK}" == *"1200ac"* ]]; then
     bash /root/rc-custom/wrt1200ac.sh
 elif [[ "${BOARD_CHECK}" == *"1900ac"* ]]; then
     bash /root/rc-custom/wrt1900ac.sh
-elif [[ "${BOARD_CHECK}" == *"Archer C7 v5"* ]]; then
+elif [[ "${BOARD_CHECK}" == *"Archer C7 v"* ]]; then
+    # For right now all the archers run the v5 script
     bash /root/rc-custom/archerc7v5.sh
 else
     bash /root/rc-custom/generic.sh
