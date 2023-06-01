@@ -1,18 +1,37 @@
 #!/usr/bin/env bash
 # /etc/udpate.sh PrivateRouter Update Script
 
-# Verify we are connected to the Internet
-is_connected() {
-    ping -q -c3 1.1.1.1 >/dev/null 2>&1
-    return $?
-}
-
 # Log to the system log and echo if needed
 log_say()
 {
-    echo "${1}"
-    logger "${1}"
+    SCRIPT_NAME=$(basename "$0")
+    echo "${SCRIPT_NAME}: ${1}"
+    logger "${SCRIPT_NAME}: ${1}"
 }
+
+# Command to wait for Internet connection
+wait_for_internet() {
+    while ! ping -q -c3 1.1.1.1 >/dev/null 2>&1; do
+        log_say "Waiting for Internet connection..."
+        sleep 1
+    done
+    log_say "Internet connection established"
+}
+
+# Wait for Internet connection
+wait_for_internet
+
+# Command to wait for opkg to finish
+wait_for_opkg() {
+  while pgrep -x opkg >/dev/null; do
+    log_say "Waiting for opkg to finish..."
+    sleep 1
+  done
+  log_say "opkg is released, our turn!"
+}
+
+# Wait for opkg to finish
+wait_for_opkg
 
 log_say "                                                                      "
 log_say " ███████████             ███                         █████            "
@@ -36,9 +55,6 @@ log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░�
 
 # Set our router's dns
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
-
-# Check if we are connected, if not, exit
-[ is_connected ] || { log_say "We are not connected to the Internet to run our update script." ; exit 0; }
 
 # Set this to 0 to disable Tankman theme
 TANKMAN_FLAG=1
@@ -146,42 +162,6 @@ if [[ "${UPDATE_NEEDED}" == "1" || ! -d ${UPDATER_LOCATION} ]]; then
 else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
-
-# Update and install all of our packages
-log_say "updating all packages!"
-
-#Go Go Packages
-opkg install opkg install openvpn-openssl luci-app-openvpn base-files usbutils busybox ca-bundle cgi-io dnsmasq dropbear openssh-sftp-client firewall fstools fwtool getrandom hostapd-common ip6tables iptables iw iwinfo jshn jsonfilter
-
-opkg install kernel kmod-ath kmod-ath9k kmod-ath9k-common kmod-cfg80211 kmod-crypto-hash kmod-crypto-kpp kmod-crypto-lib-blake2s kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519
-
-opkg install kmod-crypto-lib-poly1305 kmod-gpio-button-hotplug kmod-ip6tables kmod-ipt-conntrack kmod-ipt-core kmod-ipt-nat kmod-ipt-offload kmod-lib-crc-ccitt kmod-mac80211 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-flow kmod-nf-ipt
-
-opkg install kmod-nf-ipt6 kmod-nf-nat kmod-nf-reject kmod-nf-reject6 kmod-nls-base kmod-phy-ath79-usb kmod-ppp kmod-pppoe kmod-pppox
-
-opkg install kmod-slhc kmod-udptunnel4 kmod-udptunnel6 kmod-usb-core kmod-usb-ehci kmod-usb-ledtrig-usbport kmod-usb2 kmod-wireguard libblobmsg-json20210516 libc libgcc1 libip4tc2 libip6tc2 libiwinfo-data libiwinfo-lua libiwinfo20210430 libjson-c5
-
-opkg install libjson-script20210516 liblua5.1.5 liblucihttp-lua liblucihttp0 libnl-tiny1 libopenssl1.1 libpthread libubox20210516
-
-opkg install libubus-lua libubus20210630 libuci20130104 libuclient20201210 libustream-wolfssl20201210 libwolfssl4.8.1.66253b90 libxtables12 logd lua luci luci-app-firewall luci-app-opkg luci-app-wireguard luci-base luci-compat
-
-opkg install luci-lib-base luci-lib-ip luci-lib-ipkg luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-network luci-mod-status luci-mod-system
-
-opkg install zlib kmod-usb-storage block-mount luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk
-
-## V2RAYA INSTALLER PREP ##
-log_say "Preparing for V2rayA..."
-## download
-
-## Remove DNSMasq
-
-opkg remove dnsmasq
-
-opkg install dnsmasq-full
-
-## INSTALL ROUTER APP STORE ##
-log_say "Installing Router App Store..."
-opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard tgwireguard
 
 log_say "PrivateRouter update complete!"
 
