@@ -46,6 +46,8 @@ elif [[ "${BOARD_CHECK}" == *"1200ac"* ]]; then
     bash /root/rc-custom/wrt1200ac.sh
 elif [[ "${BOARD_CHECK}" == *"1900ac"* ]]; then
     bash /root/rc-custom/wrt1900ac.sh
+elif [[ "${BOARD_CHECK}" == *"E8450"* ]]; then
+    bash /root/rc-custom/E8450.sh
 elif [[ "${BOARD_CHECK}" == *"Archer C7 v5"* ]]; then
     bash /root/rc-custom/archerc7v5.sh
 else
