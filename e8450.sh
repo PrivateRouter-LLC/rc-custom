@@ -9,6 +9,30 @@ log_say()
     logger "${SCRIPT_NAME}: ${1}"
 }
 
+# Command to wait for Internet connection
+wait_for_internet() {
+    while ! ping -q -c3 1.1.1.1 >/dev/null 2>&1; do
+        log_say "Waiting for Internet connection..."
+        sleep 1
+    done
+    log_say "Internet connection established"
+}
+
+# Wait for Internet connection
+wait_for_internet
+
+# Command to wait for opkg to finish
+wait_for_opkg() {
+  while pgrep -x opkg >/dev/null; do
+    log_say "Waiting for opkg to finish..."
+    sleep 1
+  done
+  log_say "opkg is released, our turn!"
+}
+
+# Wait for opkg to finish
+wait_for_opkg
+
 log_say "                                                                      "
 log_say " ███████████             ███                         █████            "
 log_say "░░███░░░░░███           ░░░                         ░░███             "
@@ -29,39 +53,8 @@ log_say " ░███    ░███ ░███ ░███ ░███ �
 log_say " █████   █████░░██████  ░░████████  ░░█████ ░░██████  █████           "
 log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░░░░░    ░░░░░   ░░░░░░  ░░░░░            "
 
-# Command to wait for Internet connection
-wait_for_internet() {
-    while ! ping -q -c3 1.1.1.1 >/dev/null 2>&1; do
-        log_say "Waiting for Internet connection..."
-        sleep 1
-    done
-    log_say "Internet connection established"
-}
-
-# Command to wait for opkg to finish
-wait_for_opkg() {
-  while pgrep -x opkg >/dev/null; do
-    log_say "Waiting for opkg to finish..."
-    sleep 1
-  done
-  log_say "opkg is released, our turn!"
-}
-
-# Wait for Internet connection
-wait_for_internet
-
-# Perform the DNS resolution check
-if ! nslookup "privaterouter.com" >/dev/null 2>&1; then
-    log_say "Domain resolution failed. Setting DNS server to 1.1.1.1."
-
-    # Update resolv.conf with the new DNS server
-    echo "nameserver 1.1.1.1" > /etc/resolv.conf
-else
-    log_say "Domain resolution successful."
-fi
-
-# Wait for opkg access
-wait_for_opkg
+# Set our router's dns
+echo "nameserver 1.1.1.1" > /etc/resolv.conf
 
 # Set this to 0 to disable Tankman theme
 TANKMAN_FLAG=1
