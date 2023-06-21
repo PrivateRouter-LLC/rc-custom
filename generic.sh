@@ -9,30 +9,6 @@ log_say()
     logger "${SCRIPT_NAME}: ${1}"
 }
 
-# Command to wait for Internet connection
-wait_for_internet() {
-    while ! ping -q -c3 1.1.1.1 >/dev/null 2>&1; do
-        log_say "Waiting for Internet connection..."
-        sleep 1
-    done
-    log_say "Internet connection established"
-}
-
-# Wait for Internet connection
-wait_for_internet
-
-# Command to wait for opkg to finish
-wait_for_opkg() {
-  while pgrep -x opkg >/dev/null; do
-    log_say "Waiting for opkg to finish..."
-    sleep 1
-  done
-  log_say "opkg is released, our turn!"
-}
-
-# Wait for opkg to finish
-wait_for_opkg
-
 log_say "                                                                      "
 log_say " ███████████             ███                         █████            "
 log_say "░░███░░░░░███           ░░░                         ░░███             "
@@ -53,8 +29,39 @@ log_say " ░███    ░███ ░███ ░███ ░███ �
 log_say " █████   █████░░██████  ░░████████  ░░█████ ░░██████  █████           "
 log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░░░░░    ░░░░░   ░░░░░░  ░░░░░            "
 
-# Set our router's dns
-echo "nameserver 1.1.1.1" > /etc/resolv.conf
+# Command to wait for Internet connection
+wait_for_internet() {
+    while ! ping -q -c3 1.1.1.1 >/dev/null 2>&1; do
+        log_say "Waiting for Internet connection..."
+        sleep 1
+    done
+    log_say "Internet connection established"
+}
+
+# Command to wait for opkg to finish
+wait_for_opkg() {
+  while pgrep -x opkg >/dev/null; do
+    log_say "Waiting for opkg to finish..."
+    sleep 1
+  done
+  log_say "opkg is released, our turn!"
+}
+
+# Wait for Internet connection
+wait_for_internet
+
+# Perform the DNS resolution check
+if ! nslookup "privaterouter.com" >/dev/null 2>&1; then
+    log_say "Domain resolution failed. Setting DNS server to 1.1.1.1."
+
+    # Update resolv.conf with the new DNS server
+    echo "nameserver 1.1.1.1" > /etc/resolv.conf
+else
+    log_say "Domain resolution successful."
+fi
+
+# Wait for opkg to finish
+wait_for_opkg
 
 # Set this to 0 to disable Tankman theme
 TANKMAN_FLAG=1
@@ -167,9 +174,25 @@ fi # UPDATE_NEEDED check
 # Update and install all of our packages
 log_say "updating all packages!"
 
+log_say "NOTE: Since x86 does not currently have a stage2, we handle the install packages here"
+
 opkg update
 # Check if the file /etc/pr-mini exists, if it does we are on a device with smaller storage, otherwise we install all the packages
 if [ -f /etc/pr-mini ]; then
+
+    # Install our packages
+    log_say "Fix dnsmasq problem"
+    opkg remove dnsmasq
+    # The point here is to verify that we have a dhcp.pr file to put into place after the packages install
+    # so if we have dhcp but no dhcp.pr, we move dhcp to dhcp.pr
+    # if we have dhcp and dhcp.pr, we remove dhcp
+    if [[ -f /etc/config/dhcp && ! -f /etc/config/dhcp.pr ]]; then
+        log_say "/etc/config/dhcp exists but no /etc/config/dhcp.pr so we use our existing dhcp file"
+        mv /etc/config/dhcp /etc/config/dhcp.pr
+    elif [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then
+        log_say "/etc/config/dhcp exists and /etc/config/dhcp.pr exists so we remove the existing dhcp file"
+        rm /etc/config/dhcp
+    fi
 
     log_say "Installing packages for a mini device"
     opkg install wireguard-tools ath10k-board-qca4019 ath10k-board-qca9888 ath10k-board-qca988x ath10k-firmware-qca4019-ct ath10k-firmware-qca9888-ct ath10k-firmware-qca988x-ct attr avahi-dbus-daemon base-files block-mount busybox ca-bundle certtool cgi-io dbus dropbear e2fsprogs fdisk firewall fstools fwtool
@@ -189,7 +212,27 @@ if [ -f /etc/pr-mini ]; then
     opkg install wireguard-tools luci-app-openvpn luci-app-vpn-policy-routing luci-app-vpnbypass luci-app-watchcat luci-app-wireguard
     opkg install jshn ip ipset iptables iptables-mod-tproxy resolveip dnsmasq-full
 
+    if [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then 
+        rm -f /etc/config/dhcp
+        mv /etc/config/dhcp.pr /etc/config/dhcp
+        service dnsmasq restart
+    fi
+
 else
+
+    # Install our packages
+    log_say "Fix dnsmasq problem"
+    opkg remove dnsmasq
+    # The point here is to verify that we have a dhcp.pr file to put into place after the packages install
+    # so if we have dhcp but no dhcp.pr, we move dhcp to dhcp.pr
+    # if we have dhcp and dhcp.pr, we remove dhcp
+    if [[ -f /etc/config/dhcp && ! -f /etc/config/dhcp.pr ]]; then
+        log_say "/etc/config/dhcp exists but no /etc/config/dhcp.pr so we use our existing dhcp file"
+        mv /etc/config/dhcp /etc/config/dhcp.pr
+    elif [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then
+        log_say "/etc/config/dhcp exists and /etc/config/dhcp.pr exists so we remove the existing dhcp file"
+        rm /etc/config/dhcp
+    fi
 
     log_say "Installing packages with Docker Support"
     opkg install hostapd-utils hostapd attr avahi-dbus-daemon base-files busybox ca-bundle certtool cgi-io curl davfs2 dbus luci-app-uhttpd frpc luci-app-frpc kmod-rtl8xxxu rtl8188eu-firmware kmod-rtl8192ce kmod-rtl8192cu kmod-rtl8192de dcwapd
@@ -222,12 +265,13 @@ else
     opkg install rpcd-mod-rpcsys rpcd-mod-rrdns rsync samba4-libs samba4-server nano sshfs terminfo ubi-utils kmod-usb-net-asix-ax88179 luci-mod-dashboard luci-app-commands
     opkg install uboot-envtools ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus urandom-seed urngd usbutils usign vpnbypass vpnc-scripts watchcat wg-installer-client wget-ssl
     opkg install wireguard-tools wireless-regdb wpad zlib kmod-usb-storage block-mount samba4-server luci-app-samba4 luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk luci-app-nlbwmon luci-app-vnstat
+    opkg install dnsmasq-full
 
-        
-    # Install extra languages
-    #log_say "Installing extra languages"
-    #opkg install luci-i18n-base-ar luci-i18n-base-bg luci-i18n-base-bn luci-i18n-base-ca luci-i18n-base-cs luci-i18n-base-da luci-i18n-base-de luci-i18n-base-el luci-i18n-base-en luci-i18n-base-es luci-i18n-base-fi luci-i18n-base-fr luci-i18n-base-he luci-i18n-base-hi luci-i18n-base-hu luci-i18n-base-it luci-i18n-base-ja 
-    #opkg install  luci-i18n-base-ko luci-i18n-base-mr luci-i18n-base-ms luci-i18n-base-nl luci-i18n-base-no luci-i18n-base-pl luci-i18n-base-pt luci-i18n-base-pt-br luci-i18n-base-ro luci-i18n-base-ru luci-i18n-base-sk luci-i18n-base-sv luci-i18n-base-tr luci-i18n-base-uk luci-i18n-base-vi luci-i18n-base-zh-cn luci-i18n-base-zh-tw
+    if [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then 
+        rm -f /etc/config/dhcp
+        mv /etc/config/dhcp.pr /etc/config/dhcp
+        service dnsmasq restart
+    fi    
 
 # End of our /etc/pr-mini check
 fi
@@ -243,7 +287,7 @@ opkg install luci-ssl
 opkg install iptables-mod-extra kmod-br-netfilter kmod-ikconfig kmod-nf-conntrack-netlink kmod-nf-ipvs kmod-nf-nat iptables-zz-legacy
 
 # Mini Routers do not install docker packages
-[ -f /etc/pr-mini ] || {
+[ ! -f /etc/pr-mini ] || {
     log_say "Installing Docker related packages"
     opkg install dockerd
     opkg install docker-compose
@@ -253,9 +297,6 @@ opkg install iptables-mod-extra kmod-br-netfilter kmod-ikconfig kmod-nf-conntrac
 }
 
 sed -i '/root/s/\/bin\/ash/\/bin\/bash/g' /etc/passwd
-
-#Adding logo
-tar xzvf /etc/logo.tar.gz -C /www/luci-static/argon/
 
 log_say "PrivateRouter update complete!"
 
