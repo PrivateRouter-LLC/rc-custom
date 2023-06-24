@@ -287,7 +287,7 @@ opkg install luci-ssl
 opkg install iptables-mod-extra kmod-br-netfilter kmod-ikconfig kmod-nf-conntrack-netlink kmod-nf-ipvs kmod-nf-nat iptables-zz-legacy
 
 # Mini Routers do not install docker packages
-[ ! -f /etc/pr-mini ] || {
+[ -f /etc/pr-mini ] || {
     log_say "Installing Docker related packages"
     opkg install dockerd
     opkg install docker-compose
