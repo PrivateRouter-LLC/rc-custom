@@ -180,20 +180,25 @@ opkg update
 # Check if the file /etc/pr-mini exists, if it does we are on a device with smaller storage, otherwise we install all the packages
 if [ -f /etc/pr-mini ]; then
 
-    # Install our packages
-    log_say "Fix dnsmasq problem"
-    opkg remove dnsmasq
-    # The point here is to verify that we have a dhcp.pr file to put into place after the packages install
-    # so if we have dhcp but no dhcp.pr, we move dhcp to dhcp.pr
-    # if we have dhcp and dhcp.pr, we remove dhcp
-    if [[ -f /etc/config/dhcp && ! -f /etc/config/dhcp.pr ]]; then
-        log_say "/etc/config/dhcp exists but no /etc/config/dhcp.pr so we use our existing dhcp file"
-        mv /etc/config/dhcp /etc/config/dhcp.pr
-    elif [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then
-        log_say "/etc/config/dhcp exists and /etc/config/dhcp.pr exists so we remove the existing dhcp file"
-        rm /etc/config/dhcp
+    if [[ ! -f /etc/config/dhcp && -f /etc/config/dhcp.pr && ! -f /root/.dhcpfix-done ]]; then
+        # Install our packages
+        log_say "Fix dnsmasq problem"
+        echo "nameserver 1.1.1.1" > /etc/resolv.conf
+        opkg remove dnsmasq
+        # The point here is to verify that we have a dhcp.pr file to put into place after the packages install
+        # so if we have dhcp but no dhcp.pr, we move dhcp to dhcp.pr
+        # if we have dhcp and dhcp.pr, we remove dhcp
+        if [[ -f /etc/config/dhcp && ! -f /etc/config/dhcp.pr ]]; then
+            log_say "/etc/config/dhcp exists but no /etc/config/dhcp.pr so we use our existing dhcp file"
+            mv /etc/config/dhcp /etc/config/dhcp.pr
+        elif [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then
+            log_say "/etc/config/dhcp exists and /etc/config/dhcp.pr exists so we remove the existing dhcp file"
+            rm /etc/config/dhcp
+        fi
+        opkg install dnsmasq-full
+        touch /root/.dhcpfix-done
     fi
-
+    
     log_say "Installing packages for a mini device"
     opkg install wireguard-tools ath10k-board-qca4019 ath10k-board-qca9888 ath10k-board-qca988x ath10k-firmware-qca4019-ct ath10k-firmware-qca9888-ct ath10k-firmware-qca988x-ct attr avahi-dbus-daemon base-files block-mount busybox ca-bundle certtool cgi-io dbus dropbear e2fsprogs fdisk firewall fstools fwtool
     opkg install getrandom hostapd-common ip-full ip6tables ipq-wifi-linksys_mr8300-v0 ipset iptables iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-ath kmod-ath10k-ct kmod-ath9k kmod-ath9k-common kmod-cfg80211 kmod-crypto-crc32c kmod-crypto-hash kmod-crypto-kpp kmod-crypto-lib-blake2s kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519 kmod-crypto-lib-poly1305 kmod-fs-exfat kmod-fs-ext4
@@ -210,7 +215,7 @@ if [ -f /etc/pr-mini ]; then
     opkg install urandom-seed urngd usbids usbmuxd usbutils usign vpn-policy-routing vpnbypass vpnc-scripts watchcat wireguard-tools wireless-regdb wpad-basic-wolfssl
     opkg install zlib kmod-usb-storage block-mount luci-app-minidlna kmod-fs-ext4 kmod-fs-exfat fdisk luci-compat luci-lib-ipkg luci-proto-wireguard luci-app-wireguard luci-i18n-wireguard-en vpn-policy-routing vpnbypass vpnc-scripts watchcat wg-installer-client
     opkg install wireguard-tools luci-app-openvpn luci-app-vpn-policy-routing luci-app-vpnbypass luci-app-watchcat luci-app-wireguard
-    opkg install jshn ip ipset iptables iptables-mod-tproxy resolveip dnsmasq-full
+    opkg install jshn ip ipset iptables iptables-mod-tproxy resolveip
 
     if [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then 
         rm -f /etc/config/dhcp
