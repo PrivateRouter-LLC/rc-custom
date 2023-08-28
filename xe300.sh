@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # /etc/udpate.sh PrivateRouter Update Script
 
+exit 0
+
 # Verify we are connected to the Internet
 is_connected() {
     ping -q -c3 1.1.1.1 >/dev/null 2>&1
