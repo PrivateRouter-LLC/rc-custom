@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # /etc/udpate.sh PrivateRouter Update Script
 
-exit 0
-
 # Verify we are connected to the Internet
 is_connected() {
     ping -q -c3 1.1.1.1 >/dev/null 2>&1
@@ -36,8 +34,6 @@ log_say " ░███    ░███ ░███ ░███ ░███ �
 log_say " █████   █████░░██████  ░░████████  ░░█████ ░░██████  █████           "
 log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░░░░░    ░░░░░   ░░░░░░  ░░░░░            "
 
-# Set our router's dns
-echo "nameserver 1.1.1.1" > /etc/resolv.conf
 
 # Check if we are connected, if not, exit
 [ is_connected ] || { log_say "We are not connected to the Internet to run our update script." ; exit 0; }
@@ -149,45 +145,11 @@ else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
 
-log_say "Installing opkg packages"
-opkg --no-check-certificate update
-opkg --no-check-certificate install wget-ssl unzip ca-bundle ca-certificates
-
-# Update and install all of our packages
-log_say "updating all packages!"
-
-#Go Go Packages
-opkg install base-files busybox ca-bundle cgi-io dnsmasq dropbear firewall fstools fwtool getrandom hostapd-common ip6tables iptables iw iwinfo jshn jsonfilter kernel
-opkg install kmod-ath kmod-ath9k kmod-ath9k-common kmod-cfg80211 kmod-gpio-button-hotplug kmod-ip6tables kmod-ipt-conntrack kmod-ipt-core kmod-ipt-nat kmod-ipt-offload opkg install kmod-lib-crc-ccitt kmod-mac80211 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-flow kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nf-reject kmod-nf-reject6 kmod-nls-base
-opkg install kmod-ppp kmod-pppoe kmod-pppox kmod-slhc kmod-usb-core kmod-usb-ehci libblobmsg-json20210516 libc libgcc1 libip4tc2 libip6tc2 libiwinfo-data libiwinfo-lua libiwinfo20210430
-opkg install libjson-c5 libjson-script20210516 liblua5.1.5 liblucihttp-lua liblucihttp0 libnl-tiny1 libpthread libubox20210516 libubus-lua libubus20210630 libuci20130104
-opkg install libuclient20201210 libustream-wolfssl20201210 libxtables12 logd lua luci luci-app-firewall luci-app-opkg luci-base luci-lib-base luci-lib-ip luci-lib-jsonc luci-lib-nixio
-opkg install luci-mod-admin-full luci-mod-network luci-mod-status luci-mod-system
-opkg install luci-proto-ipv6 luci-proto-ppp luci-ssl luci-theme-bootstrap luci-app-statistics luci-mod-dashboard luci-app-vnstat
-opkg install luci-app-openvpn wireguard-tools luci-app-wireguard openvpn-openssl mtd netifd odhcp6c odhcpd-ipv6only openwrt-keyring opkg ppp ppp-mod-pppoe procd px5g-wolfssl
-opkg install openwrt-keyring opkg ppp ppp-mod-pppoe procd px5g-wolfssl kmod-usb-storage block-mount kmod-fs-ext4 kmod-fs-exfat fdisk luci-compat luci-lib-ipkg
-opkg install kmod-rt2800-usb rt2800-usb-firmware kmod-cfg80211 kmod-lib80211 kmod-mac80211 kmod-rtl8192cu luci-base luci-ssl luci-mod-admin-full
-opkg install luci-theme-bootstrap kmod-usb-storage kmod-usb-ohci kmod-usb-uhci e2fsprogs fdisk resize2fs htop debootstrap luci-compat luci-lib-ipkg dnsmasq
-opkg install git git-http jq curl bash wget kmod-usb-net-rndis luci-mod-dashboard luci-app-commands luci-app-vnstat rpcd-mod-luci luci-app-statistics luci-app-samba4 samba4-server luci-mod-admin-full luci-mod-network luci-mod-status luci-mod-system kmod-usb-net-cdc-eem
-opkg install  kmod-usb-net-cdc-ether kmod-usb-net-cdc-subset kmod-nls-base kmod-usb-core kmod-usb-net kmod-usb-net-cdc-ether kmod-usb2 kmod-usb-net-ipheth usbmuxd libimobiledevice usbutils luci-app-nlbwmon luci-app-adblock nano ttyd fail2ban speedtest-netperf opkg install vsftpd samba36-server luci-app-samba
-opkg install mwan3 comgt kmod-usb-serial kmod-usb-serial-option kmod-usb-serial-wwan usb-modeswitch kmod-usb-serial kmod-usb-net kmod-usb-serial-wwan kmod-usb-serial-option kmod-usb-net-qmi-wwan kmod-usb-net-cdc-mbim qmi-utils
-opkg install luci-proto-qmi uqmi kmod-usb-wdm umbim kmod-usb-serial-option kmod-usb-serial kmod-usb-serial-wwan kmod-usb-net-rndis kmod-nls-base kmod-usb-core kmod-usb-net kmod-usb-net-cdc-ether kmod-usb2
-
 log_say "Installing specific packages Modem Manager Packages & Configure IP"
 opkg install modemmanager kmod-usb-serial kmod-usb-net kmod-usb-serial-wwan kmod-usb-serial-option kmod-usb-net-qmi-wwan kmod-usb-net-cdc-mbim luci-proto-modemmanager
 ifconfig wwan0 down
 echo Y > /sys/class/net/wwan0/qmi/raw_ip
 ifconfig wwan0 up
-
-## V2RAYA INSTALLER PREP ##
-log_say "Preparing for V2rayA..."
-## download
-
-## Remove DNSMasq
-
-opkg remove dnsmasq
-
-opkg install dnsmasq-full
 
 ## INSTALL ROUTER APP STORE ##
 log_say "Installing Router App Store..."
