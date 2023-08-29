@@ -160,26 +160,32 @@ for package in $PACKAGE_LIST; do
 done
 
 # Check if the 'wwan' interface exists in the network configuration
-if uci -q get network.wwan; then
-    log_say "Interface 'wwan' already exists."
+if uci -q get network.wwan && [ -n "$(uci -q get network.wwan.device)" ]; then
+    log_say "Interface 'wwan' already exists and has a device value."
 else
-    log_say "Creating 'wwan' interface..."
+    log_say "Attempting to create 'wwan' interface..."
 
     # Get ModemManager modem path
     modem_path=$(mmcli -L | awk '{print $1}')
+    usb_device_path="no"
+    if [ "$modem_path" != "no" ]; then
+        # Get USB device path from modem path
+        usb_device_path=$(mmcli -m "$modem_path" | awk '/device:/ {print $NF}')
 
-    # Get USB device path from modem path
-    usb_device_path=$(mmcli -m "$modem_path" | awk '/device:/ {print $NF}')
+        # Create 'wwan' interface
+        uci set network.wwan=interface
+        uci set network.wwan.proto='modemmanager'
+        uci set network.wwan.auth='none'
+        uci set network.wwan.iptype='ipv4v6'
+        uci set network.wwan.device="${usb_device_path}"
+        uci add_list firewall.wan.network='wwan'
+        uci commit
+        
+        log_say "Interface 'wwan' created."
+    else
+        log_say "ModemManager modem not found."
+    fi
 
-    uci set network.wwan=interface
-    uci set network.wwan.proto='modemmanager'
-    uci set network.wwan.auth='none'
-    uci set network.wwan.iptype='ipv4v6'
-    uci set network.wwan.device="${usb_device_path}"
-    uci add_list firewall.wan.network='wwan'
-    uci commit
-    
-    echo "Interface 'wwan' created."
 fi
 
 log_say "PrivateRouter update complete!"
