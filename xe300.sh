@@ -145,15 +145,40 @@ else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
 
-log_say "Installing specific packages Modem Manager Packages & Configure IP"
-opkg install modemmanager kmod-usb-serial kmod-usb-net kmod-usb-serial-wwan kmod-usb-serial-option kmod-usb-net-qmi-wwan kmod-usb-net-cdc-mbim luci-proto-modemmanager
-ifconfig wwan0 down
-echo Y > /sys/class/net/wwan0/qmi/raw_ip
-ifconfig wwan0 up
+# Install system packages as needed
+log_say "Checking Required Packages..."
 
-## INSTALL ROUTER APP STORE ##
-log_say "Installing Router App Store..."
-opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
+PACKAGE_LIST="modemmanager kmod-usb-serial kmod-usb-net kmod-usb-serial-wwan kmod-usb-serial-option kmod-usb-net-qmi-wwan kmod-usb-net-cdc-mbim luci-proto-modemmanager tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard"  # List of packages separated by space
+
+for package in $PACKAGE_LIST; do
+    if ! opkg list-installed "$package" > /dev/null 2>&1; then
+        log_say "Installing $package"
+        opkg install "$package"
+    fi
+done
+
+# Check if the 'wwan' interface exists in the network configuration
+if uci -q get network.wwan; then
+    log_say "Interface 'wwan' already exists."
+else
+    log_say "Creating 'wwan' interface..."
+
+    # Get ModemManager modem path
+    modem_path=$(mmcli -L | awk '{print $1}')
+
+    # Get USB device path from modem path
+    usb_device_path=$(mmcli -m "$modem_path" | awk '/device:/ {print $NF}')
+
+    uci set network.wwan=interface
+    uci set network.wwan.proto='modemmanager'
+    uci set network.wwan.auth='none'
+    uci set network.wwan.iptype='ipv4v6'
+    uci set network.wwan.device="${usb_device_path}"
+    uci add_list firewall.wan.network='wwan'
+    uci commit
+    
+    echo "Interface 'wwan' created."
+fi
 
 log_say "PrivateRouter update complete!"
 
