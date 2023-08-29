@@ -154,6 +154,8 @@ for package in $PACKAGE_LIST; do
     if ! opkg list-installed "$package" > /dev/null 2>&1; then
         log_say "Installing $package"
         opkg install "$package"
+    else
+        log_say "$package is already installed"
     fi
 done
 
