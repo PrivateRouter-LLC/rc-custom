@@ -5,10 +5,10 @@
 BOARD_CHECK="$(cat /tmp/sysinfo/model)"
 chmod +x /root/rc-custom/*.sh
 
-# Source our base OpenWRT functions
-. /lib/functions.sh
+# # Source our base OpenWRT functions
+# . /lib/functions.sh
 
-echo "***[ Board name is \"$(board_name)\" ]***"
+# echo "***[ Board name is \"$(board_name)\" ]***"
 
 # Print current time to a temp file for tracking
 date > /tmp/last_update
