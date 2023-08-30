@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # /etc/udpate.sh PrivateRouter Update Script
 
-# Get the name of the script without the path
-SCRIPT_NAME=$(basename "$0")
+# # Get the name of the script without the path
+# SCRIPT_NAME=$(basename "$0")
 
-# Count the number of running instances of the script (excluding the current one)
-NUM_INSTANCES=$(pgrep -f "${SCRIPT_NAME}" | grep -v "$$" | wc -l)
+# # Count the number of running instances of the script (excluding the current one)
+# NUM_INSTANCES=$(pgrep -f "${SCRIPT_NAME}" | grep -v "$$" | wc -l)
 
-# If more than one instance is found, exit
-if [ "$NUM_INSTANCES" -gt 1 ]; then
-    log_say "${SCRIPT_NAME} is already running, exiting."
-    exit 1
-fi
+# # If more than one instance is found, exit
+# if [ "$NUM_INSTANCES" -gt 1 ]; then
+#     log_say "${SCRIPT_NAME} is already running, exiting."
+#     exit 1
+# fi
 
 # Verify we are connected to the Internet
 is_connected() {
@@ -164,12 +164,12 @@ PACKAGE_LIST="modemmanager kmod-usb-serial kmod-usb-net kmod-usb-serial-wwan kmo
 
 for package in $PACKAGE_LIST; do
     if ! opkg list-installed | grep -q "^$package -"; then
-        echo "Installing $package..."
+        log_say "Installing $package..."
         opkg install $package
         if [ $? -eq 0 ]; then
-            echo "$package installed successfully."
+            log_say "$package installed successfully."
         else
-            echo "Failed to install $package."
+            log_say "Failed to install $package."
         fi
     else
         echo "$package is already installed."
