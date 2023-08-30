@@ -163,11 +163,16 @@ log_say "Checking Required Packages..."
 PACKAGE_LIST="modemmanager kmod-usb-serial kmod-usb-net kmod-usb-serial-wwan kmod-usb-serial-option kmod-usb-net-qmi-wwan kmod-usb-net-cdc-mbim luci-proto-modemmanager tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard"  # List of packages separated by space
 
 for package in $PACKAGE_LIST; do
-    if ! opkg list-installed "$package" > /dev/null 2>&1; then
-        log_say "Installing $package"
-        opkg install "$package"
+    if ! opkg list-installed | grep -q "^$package -"; then
+        echo "Installing $package..."
+        opkg install $package
+        if [ $? -eq 0 ]; then
+            echo "$package installed successfully."
+        else
+            echo "Failed to install $package."
+        fi
     else
-        log_say "$package is already installed"
+        echo "$package is already installed."
     fi
 done
 
