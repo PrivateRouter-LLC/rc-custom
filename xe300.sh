@@ -48,7 +48,7 @@ log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░�
 
 
 # Check if we are connected, if not, exit
-[ is_connected ] || { log_say "We are not connected to the Internet to run our update script." ; exit 0; }
+is_connected || { log_say "We are not connected to the Internet to run our update script." ; exit 0; }
 
 # Set this to 0 to disable Tankman theme
 TANKMAN_FLAG=1
