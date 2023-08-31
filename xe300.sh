@@ -157,6 +157,19 @@ else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
 
+# Command to wait for opkg to finish
+wait_for_opkg() {
+  while pgrep -x opkg >/dev/null; do
+    log_say "Waiting for opkg to finish..."
+    sleep 1
+  done
+  log_say "opkg is released, our turn!"
+  opkg update
+}
+
+# Wait for opkg to finish
+wait_for_opkg
+
 # Install system packages as needed
 log_say "Checking Required Packages..."
 
