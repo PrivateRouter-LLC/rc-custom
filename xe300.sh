@@ -164,11 +164,16 @@ wait_for_opkg() {
     sleep 1
   done
   log_say "opkg is released, our turn!"
-  opkg update
 }
 
 # Wait for opkg to finish
 wait_for_opkg
+
+opkg update
+if [ $? ! -eq 0 ]; then
+    log_say "opkg update did not run correctly so we exit!"
+    exit 1
+fi
 
 # Install system packages as needed
 log_say "Checking Required Packages..."
