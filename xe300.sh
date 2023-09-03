@@ -22,8 +22,10 @@ is_connected() {
 # Log to the system log and echo if needed
 log_say()
 {
-    echo "${1}"
-    logger "${1}"
+    SCRIPT_NAME=$(basename "$0")
+    echo "${SCRIPT_NAME}: ${1}"
+    logger "${SCRIPT_NAME}: ${1}"
+    echo "${SCRIPT_NAME}: ${1}" >> "/tmp/${SCRIPT_NAME}.log"
 }
 
 log_say "                                                                      "
