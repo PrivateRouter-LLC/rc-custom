@@ -179,12 +179,12 @@ wait_for_opkg() {
 wait_for_opkg
 
 log_say "Waiting for opkg update to succesfully run..."
-while ! opkg update >/dev/null 2>&1; do
+while ! opkg update >/tmp/opkg_update.log 2>&1; do
     log_say "... Waiting for opkg update to succesfully run ..."
     sleep 1
 done
 
-opkg update
+opkg update  >/tmp/opkg_update.log 2>&1
 if [ $? -eq 0 ]; then
     log_say "*** opkg update completed successfully. ***"
 else
