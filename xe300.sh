@@ -13,12 +13,6 @@ if [ "$NUM_INSTANCES" -gt 1 ]; then
     exit 1
 fi
 
-# Verify we are connected to the Internet
-is_connected() {
-    ping -q -c3 1.1.1.1 >/dev/null 2>&1
-    return $?
-}
-
 # Log to the system log and echo if needed
 log_say()
 {
@@ -27,6 +21,17 @@ log_say()
     logger "${SCRIPT_NAME}: ${1}"
     echo "${SCRIPT_NAME}: ${1}" >> "/tmp/${SCRIPT_NAME}.log"
 }
+
+# Command to wait for Internet connection
+wait_for_internet() {
+    while ! ping -q -c3 1.1.1.1 >/dev/null 2>&1; do
+        log_say "Waiting for Internet connection..."
+        sleep 1
+    done
+    log_say "Internet connection established"
+}
+
+wait_for_internet
 
 log_say "                                                                      "
 log_say " ███████████             ███                         █████            "
@@ -48,9 +53,6 @@ log_say " ░███    ░███ ░███ ░███ ░███ �
 log_say " █████   █████░░██████  ░░████████  ░░█████ ░░██████  █████           "
 log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░░░░░    ░░░░░   ░░░░░░  ░░░░░            "
 
-
-# Check if we are connected, if not, exit
-is_connected || { log_say "We are not connected to the Internet to run our update script." ; exit 0; }
 
 # Set this to 0 to disable Tankman theme
 TANKMAN_FLAG=1
@@ -155,7 +157,7 @@ if [[ "${UPDATE_NEEDED}" == "1" || ! -d ${UPDATER_LOCATION} ]]; then
 
         [ -f "${UPDATER_LOCATION}/first-run.sh" ] && {
             log_say "Running the commands in the first-run.sh script."
-            bash "${UPDATER_LOCATION}/first-run.sh" &
+            bash "${UPDATER_LOCATION}/first-run.sh"
         }
     else
         log_say "We were not able to download our update scripts"
@@ -184,7 +186,10 @@ while ! opkg update >/tmp/opkg_update.log 2>&1; do
     sleep 1
 done
 
-opkg update  >/tmp/opkg_update.log 2>&1
+# Wait for opkg to finish
+wait_for_opkg
+
+opkg update >/tmp/opkg_update.log 2>&1
 if [ $? -eq 0 ]; then
     log_say "*** opkg update completed successfully. ***"
 else
