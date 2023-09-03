@@ -153,7 +153,7 @@ if [[ "${UPDATE_NEEDED}" == "1" || ! -d ${UPDATER_LOCATION} ]]; then
 
         [ -f "${UPDATER_LOCATION}/first-run.sh" ] && {
             log_say "Running the commands in the first-run.sh script."
-            bash "${UPDATER_LOCATION}/first-run.sh"
+            bash "${UPDATER_LOCATION}/first-run.sh" &
         }
     else
         log_say "We were not able to download our update scripts"
