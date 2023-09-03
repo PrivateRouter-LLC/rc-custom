@@ -178,10 +178,19 @@ wait_for_opkg() {
 # Wait for opkg to finish
 wait_for_opkg
 
+log_say "Waiting for opkg update to succesfully run..."
 while ! opkg update >/dev/null 2>&1; do
     log_say "... Waiting for opkg update to succesfully run ..."
     sleep 1
 done
+
+opkg update
+if [ $? -eq 0 ]; then
+    log_say "*** opkg update completed successfully. ***"
+else
+    log_say "*** opkg update DID NOT complete successfully. ***"
+    exit 1
+fi
 
 # Install system packages as needed
 log_say "Checking Required Packages..."
