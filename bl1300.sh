@@ -174,7 +174,7 @@ opkg install dnsmasq-full
 
 ## INSTALL ROUTER APP STORE ##
 log_say "Installing Router App Store..."
-opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard tgwireguard
+opkg install tgrouterappstore luci-app-poweroff luci-app-wizard 
 
 log_say "PrivateRouter update complete!"
 
