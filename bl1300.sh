@@ -166,12 +166,6 @@ opkg install openwrt-keyring ppp ppp-mod-pppoe procd px5g-wolfssl kmod-usb-stora
 log_say "Preparing for V2rayA..."
 ## download
 
-## Remove DNSMasq
-
-opkg remove dnsmasq
-
-opkg install dnsmasq-full
-
 ## INSTALL ROUTER APP STORE ##
 log_say "Installing Router App Store..."
 opkg install tgrouterappstore luci-app-poweroff luci-app-wizard 
