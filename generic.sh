@@ -238,7 +238,127 @@ else
         log_say "/etc/config/dhcp exists and /etc/config/dhcp.pr exists so we remove the existing dhcp file"
         rm /etc/config/dhcp
     fi
+    
+    log_say "Installing mesh packages"
+    opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
+    opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd
+    log_say "fixing mod dashboard css"
+    opkg install luci-mod-dashboard
+    rm /www/luci-static/resources/view/dashboard/css/custom.css
+    cp -f /etc/custom.css /www/luci-static/resources/view/dashboard/css/custom.css
+    log_say "Install LXC and related packages"
+    opkg install lxc lxc-attach lxc-auto lxc-autostart lxc-cgroup lxc-checkconfig lxc-common lxc-config lxc-configs 
+    opkg install lxc-console lxc-copy lxc-create lxc-destroy lxc-device lxc-execute lxc-freeze lxc-hooks lxc-info lxc-init 
+    opkg install lxc-ls lxc-monitor lxc-monitord lxc-snapshot lxc-start lxc-stop lxc-templates lxc-top lxc-unfreeze 
+    opkg install lxc-unprivileged lxc-unshare lxc-user-nic lxc-usernsexec lxc-wait liblxc luci-app-lxc luci-i18n-lxc-en rpcd-mod-lxc
+    mkdir /opt/docker2/compose/lxc
+    rm /etc/lxc/default.conf
+    rm /etc/lxc/lxc.conf
+    touch /etc/lxc/default.conf
+    touch /etc/lxc/lxc.conf
+cat > /etc/lxc/lxc.conf <<EOL
+lxc.lxcpath = /opt/docker2/compose/lxc
+EOL
+cat > /etc/lxc/default.conf <<EOL
+#lxc.net.0.type = empty
+lxc.net.0.type = veth
+lxc.net.0.link = br-lan
+lxc.net.0.flags = up
+#lxc.net.0.hwaddr = 00:FF:DD:BB:CC:01
+EOL
+rm /etc/init.d/lxc-auto
+touch /etc/init.d/lxc-auto
+chmod +x /etc/init.d/lxc-auto
+cat > /etc/init.d/lxc-auto <<EOL
+#!/bin/bash /etc/rc.common
 
+. /lib/functions.sh
+
+START=99
+STOP=00
+
+run_command() {
+	local command="$1"
+	$command
+}
+
+start_container() {
+    local cfg="$1"
+    local name
+
+    config_get name "$cfg" name
+    config_list_foreach "$cfg" command run_command
+
+    if [ -n "$name" ]; then
+        local config_path="/opt/docker2/compose/lxc/$name/config"
+
+        # Change permissions so that the script can write to the file
+        chmod 664 "$config_path" || echo "Failed to set permissions on $config_path" >> /etc/lxc/error.log
+
+        # Generate a random MAC address
+        local MAC=$(od -An -N6 -tx1 /dev/urandom | sed -e 's/  */:/g' -e 's/^://')
+
+        # Debugging: log the MAC address generation
+        echo "Debug: Generated MAC $MAC for $name" >> /etc/lxc/error.log
+
+        # Remove existing MAC address setting if it exists
+        sed -i "/^lxc.net.0.hwaddr/d" "$config_path"
+
+        # Add new MAC address setting
+        echo "lxc.net.0.hwaddr = $MAC" >> "$config_path" || echo "Failed to write MAC address to $config_path" >> /etc/lxc/error.log
+
+        # Start the container
+        /usr/bin/lxc-start -n "$name"
+    fi
+}
+
+max_timeout=0
+
+stop_container() {
+	local cfg="$1"
+	local name timeout
+
+	config_get name "$cfg" name
+	config_get timeout "$cfg" timeout 300
+
+	if [ "$max_timeout" -lt "$timeout" ]; then
+		max_timeout=$timeout
+	fi
+
+	if [ -n "$name" ]; then
+		/usr/bin/lxc-stop -n "$name" -t $timeout &
+	fi
+}
+
+start() {
+	config_load lxc-auto
+	config_foreach start_container container
+}
+
+stop() {
+	config_load lxc-auto
+	config_foreach stop_container container
+	# ensure e.g. shutdown doesn't occur before maximum timeout on
+	# containers that are shutting down
+	if [ $max_timeout -gt 0 ]; then
+		sleep $max_timeout
+	fi
+}
+
+#Export systemd cgroups
+boot() {
+	if [ ! -d /sys/fs/cgroup/systemd ]; then
+		mkdir -p /sys/fs/cgroup/systemd
+		mount -t cgroup -o rw,nosuid,nodev,noexec,relatime,none,name=systemd cgroup /sys/fs/cgroup/systemd
+	fi
+
+	if [ ! -d /run ]; then
+		ln -s /var/run /run
+	fi
+
+	start
+}
+EOL
     log_say "Installing packages with Docker Support"
     opkg install hostapd-utils hostapd attr avahi-dbus-daemon base-files busybox ca-bundle certtool cgi-io curl davfs2 dbus luci-app-uhttpd frpc luci-app-frpc kmod-rtl8xxxu rtl8188eu-firmware kmod-rtl8192ce kmod-rtl8192cu kmod-rtl8192de dcwapd
     opkg install jq bash git-http kmod-mwifiex-pcie kmod-mwifiex-sdio kmod-rtl8723bs kmod-rtlwifi kmod-rtlwifi-btcoexist kmod-rtlwifi-pci kmod-rtlwifi-usb kmod-wil6210 libuwifi
@@ -262,15 +382,34 @@ else
     opkg install libmount1 libncurses6 libneon libnettle8 libnftnl11 libnghttp2-14 libnl-tiny1 libogg0 libopenssl-conf libopenssl1.1 libowipcalc libpam libpcre libpopt0 libprotobuf-c libpthread libreadline8 kmod-usb-net-cdc-subset
     opkg install librt libsmartcols1 libsodium libsqlite3-0 libtasn1 libtirpc libubus-lua libuci-lua libuci20130104 libuclient20201210 libudev-zero liburing libusb-1.0-0 libustream-wolfssl20201210 libuuid1 kmod-usb-net-cdc-ether kmod-rtl8xxxu
     opkg install libvorbis libxml2 libxtables12 logd lua luci luci-app-attendedsysupgrade luci-app-firewall luci-app-minidlna luci-app-openvpn luci-app-opkg luci-app-samba4 kmod-usb-net-hso kmod-net-rtl8192su kmod-usb-net-rtl8150
-    opkg install luci-app-vpn-policy-routing luci-app-vpnbypass luci-app-watchcat luci-app-wireguard luci-base luci-compat luci-i18n-firewall-en kmod-usb2 kmod-usb3 rtl8192eu-firmware
+    opkg install luci-app-wireguard luci-base luci-compat luci-i18n-firewall-en kmod-usb2 kmod-usb3 rtl8192eu-firmware
     opkg install luci-i18n-wireguard-en luci-lib-base luci-lib-ip luci-lib-ipkg luci-lib-jsonc luci-lib-nixio luci-mod-admin-full luci-mod-network luci-mod-status luci-mod-system luci-proto-ipv6 mt7601u-firmware
     opkg install luci-proto-ppp luci-proto-wireguard luci-theme-bootstrap luci-theme-material luci-theme-openwrt-2020 minidlna mount-utils mtd mwifiex-sdio-firmware mwlwifi-firmware-88w8964 kmod-mt76 kmod-rtl8187
     opkg install netifd odhcp6c odhcpd-ipv6only openssh-sftp-client openssh-sftp-server openssl-util openvpn-openssl openwrt-keyring opkg owipcalc ppp ppp-mod-pppoe procd procd-seccomp kmod-mt7601u
     opkg install procd-ujail python3-base python3-email python3-light python3-logging python3-openssl python3-pysocks python3-urllib resolveip rpcd rpcd-mod-file rpcd-mod-iwinfo rpcd-mod-luci luci-app-statistics
-    opkg install rpcd-mod-rpcsys rpcd-mod-rrdns rsync samba4-libs samba4-server nano sshfs terminfo ubi-utils kmod-usb-net-asix-ax88179 luci-mod-dashboard luci-app-commands
+    opkg install rpcd-mod-rpcsys rpcd-mod-rrdns rsync samba4-libs samba4-server nano sshfs terminfo ubi-utils kmod-usb-net-asix-ax88179 luci-app-commands
     opkg install uboot-envtools ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus urandom-seed urngd usbutils usign vpnbypass vpnc-scripts watchcat wg-installer-client wget-ssl
     opkg install wireguard-tools wireless-regdb wpad zlib kmod-usb-storage block-mount samba4-server luci-app-samba4 luci-app-minidlna minidlna kmod-fs-ext4 kmod-fs-exfat e2fsprogs fdisk luci-app-nlbwmon luci-app-vnstat
     opkg install dnsmasq-full
+    opkg install luci-app-fileassistant
+    opkg install luci-app-plugsy
+    opkg remove tgsstp
+    opkg remove tgopenvpn
+    opkg remove tganyconnect
+    opkg remove luci-app-shortcutmenu
+    opkg remove luci-app-webtop
+    opkg remove luci-app-nextcloud
+    opkg remove luci-app-seafile
+    opkg install /etc/luci-app-megamedia_git-23.251.42088-cdbc3cb_all.ipk
+    opkg install /etc/luci-app-webtop_git-23.251.39494-1b8885d_all.ipk
+    opkg install /etc/luci-app-shortcutmenu_git-23.251.38707-d0c2502_all.ipk
+    opkg install /etc/tgsstp_git-23.251.15457-c428b60_all.ipk
+    opkg install /etc/tganyconnect_git-23.251.15499-9fafcfe_all.ipk
+    opkg install /etc/tgopenvpn_git-23.251.15416-16e4649_all.ipk
+    opkg install /etc/luci-app-seafile_git-23.251.23441-a760a47_all.ipk
+    opkg install /etc/luci-app-nextcloud_git-23.251.23529-ee6a72e_all.ipk
+    opkg install /etc/luci-app-whoogle_git-23.250.10284-cdadc0b_all.ipk
+    opkg install /etc/luci-theme-privaterouter_0.3.1-8_all.ipk
 
     if [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then 
         rm -f /etc/config/dhcp
