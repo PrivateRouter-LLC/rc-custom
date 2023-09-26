@@ -61,7 +61,14 @@ TANKMAN_FLAG=1
 
 # This file is our marker to know the first run init script has already ran
 INIT_MARKER="/usr/lib/opkg/info/tankman.list"
-
+#Install mesh
+    ## INSTALL MESH PROFILE ##
+    log_say "Installing Mesh Packages..."
+    opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
+    opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
+    opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd mesh11sd batctl-full luci-app-dawn luci-app-easymesh
+    opkg install /etc/luci-app-easymesh_2.1_all.ipk
+   
 # If we are online and our tankman flag is enabled (and we have not already been ran before), do our setup script
 [ ${TANKMAN_FLAG} = "1" ] && [ ! -f "${INIT_MARKER}" ] && {
         #Install Argon Tankman theme
