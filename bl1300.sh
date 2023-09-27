@@ -149,6 +149,14 @@ fi # UPDATE_NEEDED check
 
 # Update and install all of our packages
 log_say "updating all packages!"
+opkg update
+## INSTALL MESH  ##
+log_say "Installing Mesh Packages..."
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
+opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
+opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn
+opkg install /etc/luci-app-easymesh_2.2_all.ipk
+opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
 
 #Go Go Packages
 opkg install base-files busybox ca-bundle cgi-io dnsmasq dropbear firewall fstools fwtool getrandom hostapd-common ip6tables iptables iw iwinfo jshn jsonfilter kernel
@@ -161,10 +169,6 @@ opkg install luci-mod-admin-full luci-mod-network luci-mod-status luci-mod-syste
 opkg install luci-proto-ipv6 luci-proto-ppp luci-ssl luci-theme-bootstrap luci-mod-dashboard
 opkg install netifd odhcp6c odhcpd-ipv6only openwrt-keyring opkg ppp ppp-mod-pppoe procd
 opkg install openwrt-keyring ppp ppp-mod-pppoe procd px5g-wolfssl kmod-usb-storage block-mount kmod-fs-ext4 kmod-fs-exfat fdisk luci-compat luci-lib-ipkg
-
-## V2RAYA INSTALLER PREP ##
-log_say "Preparing for V2rayA..."
-## download
 
 ## INSTALL ROUTER APP STORE ##
 log_say "Installing Router App Store..."
