@@ -370,9 +370,12 @@ EOL
     log_say "Installing Mesh Packages..."
     opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp
     opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl openwisp-monitoring openwisp-config
-    opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn mesh11sd
-    opkg install /etc/luci-app-easymesh_2.4_all.ipk
-    opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
+    opkg install wpad-mesh-openssl --force-depends
+    opkg install --force-depend kmod-batman-adv
+    opkg install --force-depends batctl 
+    opkg install avahi-autoipd batctl-full luci-app-dawn
+    opkg install /etc/luci-app-easymesh_2.4_all.ipk --force-depends
+    opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk --force-depends
     log_say "fixing mod dashboard css"
     opkg install luci-mod-dashboard
     rm /www/luci-static/resources/view/dashboard/css/custom.css
