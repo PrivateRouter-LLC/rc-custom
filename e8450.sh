@@ -68,7 +68,7 @@ INIT_MARKER="/usr/lib/opkg/info/tankman.list"
     opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
     opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd mesh11sd batctl-full luci-app-dawn
     opkg install /etc/luci-app-easymesh_2.4_all.ipk
-    opkg install /etc/luci-app-chatgpt_1.1.3_all.ipk
+    opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
    
 # If we are online and our tankman flag is enabled (and we have not already been ran before), do our setup script
 [ ${TANKMAN_FLAG} = "1" ] && [ ! -f "${INIT_MARKER}" ] && {
