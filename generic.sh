@@ -198,6 +198,15 @@ if [ -f /etc/pr-mini ]; then
         opkg install dnsmasq-full
         touch /root/.dhcpfix-done
     fi
+
+    log_say "Installing mesh packages"
+    ## INSTALL MESH  ##
+    log_say "Installing Mesh Packages..."
+    opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp
+    opkg remove wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl openwisp-monitoring openwisp-config
+    opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn mesh11sd
+    opkg install /etc/luci-app-easymesh_2.4_all.ipk
+    opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
     
     log_say "Installing packages for a mini device"
     opkg install wireguard-tools ath10k-board-qca4019 ath10k-board-qca9888 ath10k-board-qca988x ath10k-firmware-qca4019-ct ath10k-firmware-qca9888-ct ath10k-firmware-qca988x-ct attr avahi-dbus-daemon base-files block-mount busybox ca-bundle certtool cgi-io dbus dropbear e2fsprogs fdisk firewall fstools fwtool
@@ -239,14 +248,6 @@ else
         rm /etc/config/dhcp
     fi
     
-    log_say "Installing mesh packages"
-    ## INSTALL MESH  ##
-    log_say "Installing Mesh Packages..."
-    opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp
-    opkg remove wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl openwisp-monitoring openwisp-config
-    opkg install wpad wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn mesh11sd
-    opkg install /etc/luci-app-easymesh_2.4_all.ipk
-    opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
     log_say "fixing mod dashboard css"
     opkg install luci-mod-dashboard
     rm /www/luci-static/resources/view/dashboard/css/custom.css
