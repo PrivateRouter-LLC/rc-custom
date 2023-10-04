@@ -152,6 +152,12 @@ log_say "updating all packages!"
 
 opkg update
 
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
+opkg remove wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl wpad-mbedtls wpad-basic-mbedtls
+opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn mesh11sd
+opkg install /etc/luci-app-easymesh_2.4_all.ipk
+opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
+ 
 opkg install wireguard-tools ath10k-board-qca4019 ath10k-board-qca9888 ath10k-board-qca988x ath10k-firmware-qca4019-ct ath10k-firmware-qca9888-ct ath10k-firmware-qca988x-ct attr avahi-dbus-daemon base-files block-mount busybox ca-bundle certtool cgi-io dbus dnsmasq dropbear e2fsprogs fdisk firewall fstools fwtool
 
 opkg install getrandom hostapd-common ip-full ip6tables ipq-wifi-linksys_mr8300-v0 ipset iptables iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-ath kmod-ath10k-ct kmod-ath9k kmod-ath9k-common kmod-cfg80211 kmod-crypto-crc32c kmod-crypto-hash kmod-crypto-kpp kmod-crypto-lib-blake2s kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519 kmod-crypto-lib-poly1305 kmod-fs-exfat kmod-fs-ext4
