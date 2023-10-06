@@ -59,7 +59,13 @@ if ! nslookup "privaterouter.com" >/dev/null 2>&1; then
 else
     log_say "Domain resolution successful."
 fi
-
+## INSTALL MESH  ##
+    log_say "Installing Mesh Packages..."
+    opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
+    opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
+    opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn
+    opkg install luci-app-easymesh
+    opkg install luci-proto-batman-adv
 # Wait for opkg access
 wait_for_opkg
 
