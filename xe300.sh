@@ -168,54 +168,6 @@ else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
 
-# Command to wait for opkg to finish
-wait_for_opkg() {
-  while pgrep -x opkg >/dev/null; do
-    log_say "Waiting for opkg to finish..."
-    sleep 1
-  done
-  log_say "opkg is released, our turn!"
-}
-
-# Wait for opkg to finish
-wait_for_opkg
-
-log_say "Waiting for opkg update to succesfully run..."
-while ! opkg update >/tmp/opkg_update.log 2>&1; do
-    log_say "... Waiting for opkg update to succesfully run ..."
-    sleep 1
-done
-
-# Wait for opkg to finish
-wait_for_opkg
-
-opkg update >/tmp/opkg_update.log 2>&1
-if [ $? -eq 0 ]; then
-    log_say "*** opkg update completed successfully. ***"
-else
-    log_say "*** opkg update DID NOT complete successfully. ***"
-    exit 1
-fi
-
-# Install system packages as needed
-log_say "Checking Required Packages..."
-
-PACKAGE_LIST="modemmanager kmod-usb-serial kmod-usb-net kmod-usb-serial-wwan kmod-usb-serial-option kmod-usb-net-qmi-wwan kmod-usb-net-cdc-mbim luci-proto-modemmanager luci-app-shortcutmenu luci-app-poweroff luci-app-wizard"  # List of packages separated by space
-
-for package in $PACKAGE_LIST; do
-    if ! opkg list-installed | grep -q "^$package -"; then
-        log_say "Installing $package..."
-        opkg install $package
-        if [ $? -eq 0 ]; then
-            log_say "$package installed successfully."
-        else
-            log_say "Failed to install $package."
-        fi
-    else
-        echo "$package is already installed."
-    fi
-done
-
 # Check if the 'wwan' interface exists in the network configuration
 if uci -q get network.wwan && [ -n "$(uci -q get network.wwan.device)" ]; then
     log_say "Interface 'wwan' already exists and has a device value."
