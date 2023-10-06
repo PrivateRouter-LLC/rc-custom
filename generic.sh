@@ -204,7 +204,7 @@ if [ -f /etc/pr-mini ]; then
     log_say "Installing Mesh Packages..."
     opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp
     opkg remove wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl openwisp-monitoring openwisp-config
-    opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn mesh11sd
+    opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn 
     opkg install /etc/luci-app-easymesh_2.4_all.ipk
     opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
     
@@ -368,19 +368,20 @@ EOL
     log_say "Installing packages with Docker Support"
     ## INSTALL MESH  ##
     log_say "Installing Mesh Packages..."
-    opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp
-    opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl openwisp-monitoring openwisp-config
+    opkg install hostapd-utils hostapd
+    opkg install luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp openwisp-monitoring openwisp-config
+    opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl 
     opkg install wpad-mesh-openssl --force-depends
-    opkg install --force-depend kmod-batman-adv
-    opkg install --force-depends batctl 
+    opkg install kmod-batman-adv
+    opkg install batctl 
     opkg install avahi-autoipd batctl-full luci-app-dawn
     opkg install /etc/luci-app-easymesh_2.4_all.ipk --force-depends
-    opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk --force-depends
+    opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
     log_say "fixing mod dashboard css"
     opkg install luci-mod-dashboard
     rm /www/luci-static/resources/view/dashboard/css/custom.css
     cp -f /etc/custom.css /www/luci-static/resources/view/dashboard/css/custom.css
-    opkg install hostapd-utils hostapd attr avahi-dbus-daemon base-files busybox ca-bundle certtool cgi-io curl davfs2 dbus luci-app-uhttpd frpc luci-app-frpc kmod-rtl8xxxu rtl8188eu-firmware kmod-rtl8192ce kmod-rtl8192cu kmod-rtl8192de dcwapd
+    opkg install attr avahi-dbus-daemon base-files busybox ca-bundle certtool cgi-io curl davfs2 dbus luci-app-uhttpd frpc luci-app-frpc kmod-rtl8xxxu rtl8188eu-firmware kmod-rtl8192ce kmod-rtl8192cu kmod-rtl8192de dcwapd
     opkg install jq bash git-http kmod-mwifiex-pcie kmod-mwifiex-sdio kmod-rtl8723bs kmod-rtlwifi kmod-rtlwifi-btcoexist kmod-rtlwifi-pci kmod-rtlwifi-usb kmod-wil6210 libuwifi
     opkg install kmod-8139cp kmod-8139too kmod-net-rtl8192su kmod-phy-realtek kmod-r8169 kmod-rtl8180 kmod-rtl8187 kmod-rtl8192c-common kmod-rtl8192ce kmod-rtl8192cu kmod-rtl8192de kmod-rtl8192se kmod-rtl8812au-ct kmod-rtl8821ae kmod-rtl8xxxu kmod-rtlwifi kmod-rtlwifi-btcoexist
     opkg install kmod-rtlwifi-pci kmod-rtlwifi-usb kmod-rtw88 kmod-sound-hda-codec-realtek kmod-switch-rtl8306 kmod-switch-rtl8366-smi kmod-switch-rtl8366rb kmod-switch-rtl8366s kmod-switch-rtl8367b kmod-usb-net-rtl8150 kmod-usb-net-rtl8152 librtlsdr r8169-firmware rtl-sdr rtl8188eu-firmware
