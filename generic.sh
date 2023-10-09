@@ -70,14 +70,14 @@ TANKMAN_FLAG=1
 INIT_MARKER="/usr/lib/opkg/info/tankman.list"
 
 # If we are online and our tankman flag is enabled (and we have not already been ran before), do our setup script
-[ ${TANKMAN_FLAG} = "1" ] && [ ! -f "${INIT_MARKER}" ] && {
+[ ${TANKMAN_FLAG} = "1" ] && [ ! -f "${INIT_MARKER}" ] && [ -d /pr-installers ] && {
         #Install Argon Tankman theme
         log_say "Installing custom Argon Tankman Theme"
-        opkg install /etc/luci-theme-argon*.ipk
-        opkg install /etc/luci-app-argon*.ipk
+        opkg install /pr-installers/luci-theme-argon*.ipk
+        opkg install /pr-installers/luci-app-argon*.ipk
 
-        tar xzvf /etc/logo.tar.gz -C /www/luci-static/argon/
-        tar xzvf /etc/dockerman.tar.gz -C /usr/lib/lua/luci/model/cbi/dockerman/
+        tar xzvf /pr-installers/logo.tar.gz -C /www/luci-static/argon/
+        tar xzvf /pr-installers/dockerman.tar.gz -C /usr/lib/lua/luci/model/cbi/dockerman/
 
         # Delete the background files from /www/luci-static/argon/background
         # Comment these lines out if you want to avoid bing backgrounds
@@ -184,10 +184,12 @@ while ! opkg update >/dev/null 2>&1; do
     sleep 1
 done
 
-# log_say "fixing mod dashboard css"
-# opkg install luci-mod-dashboard
-# rm /www/luci-static/resources/view/dashboard/css/custom.css
-# cp -f /etc/custom.css /www/luci-static/resources/view/dashboard/css/custom.css
+[ -f /pr-installers/custom.css ] && {
+    log_say "fixing mod dashboard css"
+    opkg install luci-mod-dashboard
+    rm /www/luci-static/resources/view/dashboard/css/custom.css
+    cp -f /pr-installers/custom.css /www/luci-static/resources/view/dashboard/css/custom.css
+}
 
 ## INSTALL MESH  ##
 log_say "Installing Mesh Packages..."
@@ -198,26 +200,26 @@ opkg install wpad-mesh-openssl --force-depends
 opkg install kmod-batman-adv
 opkg install batctl 
 opkg install avahi-autoipd batctl-full luci-app-dawn
-# opkg install /etc/luci-app-easymesh_2.4_all.ipk --force-depends
-# opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
+# opkg install /pr-installers/luci-app-easymesh_2.4_all.ipk --force-depends
+# opkg install /pr-installers/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
 
-    # opkg remove tgsstp
-    # opkg remove tgopenvpn
-    # opkg remove tganyconnect
-    # opkg remove luci-app-shortcutmenu
-    # opkg remove luci-app-webtop
-    # opkg remove luci-app-nextcloud
-    # opkg remove luci-app-seafile
-    # opkg install /etc/luci-app-megamedia_git-23.251.42088-cdbc3cb_all.ipk
-    # opkg install /etc/luci-app-webtop_git-23.251.39494-1b8885d_all.ipk
-    # opkg install /etc/luci-app-shortcutmenu_git-23.251.38707-d0c2502_all.ipk
-    # opkg install /etc/tgsstp_git-23.251.15457-c428b60_all.ipk
-    # opkg install /etc/tganyconnect_git-23.251.15499-9fafcfe_all.ipk
-    # opkg install /etc/tgopenvpn_git-23.251.15416-16e4649_all.ipk
-    # opkg install /etc/luci-app-seafile_git-23.251.23441-a760a47_all.ipk
-    # opkg install /etc/luci-app-nextcloud_git-23.251.23529-ee6a72e_all.ipk
-    # opkg install /etc/luci-app-whoogle_git-23.250.10284-cdadc0b_all.ipk
-    # opkg install /etc/luci-theme-privaterouter_0.3.1-8_all.ipk
+# opkg remove tgsstp
+# opkg remove tgopenvpn
+# opkg remove tganyconnect
+# opkg remove luci-app-shortcutmenu
+# opkg remove luci-app-webtop
+# opkg remove luci-app-nextcloud
+# opkg remove luci-app-seafile
+# opkg install /pr-installers/luci-app-megamedia_git-23.251.42088-cdbc3cb_all.ipk
+# opkg install /pr-installers/luci-app-webtop_git-23.251.39494-1b8885d_all.ipk
+# opkg install /pr-installers/luci-app-shortcutmenu_git-23.251.38707-d0c2502_all.ipk
+# opkg install /pr-installers/tgsstp_git-23.251.15457-c428b60_all.ipk
+# opkg install /pr-installers/tganyconnect_git-23.251.15499-9fafcfe_all.ipk
+# opkg install /pr-installers/tgopenvpn_git-23.251.15416-16e4649_all.ipk
+# opkg install /pr-installers/luci-app-seafile_git-23.251.23441-a760a47_all.ipk
+# opkg install /pr-installers/luci-app-nextcloud_git-23.251.23529-ee6a72e_all.ipk
+# opkg install /pr-installers/luci-app-whoogle_git-23.250.10284-cdadc0b_all.ipk
+# opkg install /pr-installers/luci-theme-privaterouter_0.3.1-8_all.ipk
 
 log_say "Checking if firewall4 is installed"
 if ! opkg list-installed | grep -q "^firewall4 "; then
