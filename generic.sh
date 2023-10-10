@@ -63,35 +63,6 @@ log_say " ░███    ░███ ░███ ░███ ░███ �
 log_say " █████   █████░░██████  ░░████████  ░░█████ ░░██████  █████           "
 log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░░░░░    ░░░░░   ░░░░░░  ░░░░░            "
 
-# Set this to 0 to disable Tankman theme
-TANKMAN_FLAG=1
-
-# This file is our marker to know the first run init script has already ran
-INIT_MARKER="/usr/lib/opkg/info/tankman.list"
-
-# If we are online and our tankman flag is enabled (and we have not already been ran before), do our setup script
-[ ${TANKMAN_FLAG} = "1" ] && [ ! -f "${INIT_MARKER}" ] && [ -d /pr-installers ] && {
-        #Install Argon Tankman theme
-        log_say "Installing custom Argon Tankman Theme"
-        opkg install /pr-installers/luci-theme-argon*.ipk
-        opkg install /pr-installers/luci-app-argon*.ipk
-
-        tar xzvf /pr-installers/logo.tar.gz -C /www/luci-static/argon/
-        tar xzvf /pr-installers/dockerman.tar.gz -C /usr/lib/lua/luci/model/cbi/dockerman/
-
-        # Delete the background files from /www/luci-static/argon/background
-        # Comment these lines out if you want to avoid bing backgrounds
-        rm -rf /www/luci-static/argon/background/mahsa_amini.png
-        rm -rf /www/luci-static/argon/background/tankman.mp4
-
-        # Marker set so we know theme has been installed
-        log_say "Set our marker file to know our tankman theme install has already ran"
-        touch "${INIT_MARKER}"
-} || {
-        # No need to run setup script
-        log_say "We do not need to run the PrivateRouter Tankman Theme Setup Script or it has already ran"
-}
-
 # Check if we need to update our updater scripts
 log_say "Beginning update-scripts up to date check"
 
