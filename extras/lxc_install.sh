@@ -2,27 +2,33 @@
 
 
 setup_lxc() {
+    # Wait until we can run opkg update, if it fails try again
+    while ! opkg update >/dev/null 2>&1; do
+        log_say "... Waiting to update opkg ..."
+        sleep 1
+    done
+    
     log_say "Install LXC and related packages"
 
-# List of our packages to install
-PACKAGE_LIST="lxc lxc-attach lxc-auto lxc-autostart lxc-cgroup lxc-checkconfig lxc-common lxc-config lxc-configs lxc-console lxc-copy lxc-create lxc-destroy lxc-device lxc-execute lxc-freeze lxc-hooks lxc-info lxc-init lxc-ls lxc-monitor lxc-monitord lxc-snapshot lxc-start lxc-stop lxc-templates lxc-top lxc-unfreeze lxc-unprivileged lxc-unshare lxc-user-nic lxc-usernsexec lxc-wait liblxc luci-app-lxc luci-i18n-lxc-en rpcd-mod-lxc xz tar gnupg cgroupfs-mount cgroup-tools kmod-ikconfig kmod-veth gnupg2-utils gnupg2-dirmngr "
+    # List of our packages to install
+    PACKAGE_LIST="lxc lxc-attach lxc-auto lxc-autostart lxc-cgroup lxc-checkconfig lxc-common lxc-config lxc-configs lxc-console lxc-copy lxc-create lxc-destroy lxc-device lxc-execute lxc-freeze lxc-hooks lxc-info lxc-init lxc-ls lxc-monitor lxc-monitord lxc-snapshot lxc-start lxc-stop lxc-templates lxc-top lxc-unfreeze lxc-unprivileged lxc-unshare lxc-user-nic lxc-usernsexec lxc-wait liblxc luci-app-lxc luci-i18n-lxc-en rpcd-mod-lxc xz tar gnupg cgroupfs-mount cgroup-tools kmod-ikconfig kmod-veth gnupg2-utils gnupg2-dirmngr "
 
-count=$(echo "$PACKAGE_LIST" | wc -w)
-log_say "Packages to install: ${count}"
+    count=$(echo "$PACKAGE_LIST" | wc -w)
+    log_say "Packages to install: ${count}"
 
-for package in $PACKAGE_LIST; do
-    if ! opkg list-installed | grep -q "^$package -"; then
-        echo "Installing $package..."
-        opkg install $package
-        if [ $? -eq 0 ]; then
-            echo "$package installed successfully."
+    for package in $PACKAGE_LIST; do
+        if ! opkg list-installed | grep -q "^$package -"; then
+            echo "Installing $package..."
+            opkg install $package
+            if [ $? -eq 0 ]; then
+                echo "$package installed successfully."
+            else
+                echo "Failed to install $package."
+            fi
         else
-            echo "Failed to install $package."
+            echo "$package is already installed."
         fi
-    else
-        echo "$package is already installed."
-    fi
-done
+    done
 
 
     mkdir -p /opt/docker2/compose/lxc
