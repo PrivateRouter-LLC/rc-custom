@@ -149,13 +149,6 @@ fi # UPDATE_NEEDED check
 
 # Update and install all of our packages
 log_say "updating all packages!"
-## INSTALL MESH  ##
-log_say "Installing Mesh Packages..."
-opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
-opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
-opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn
-opkg install luci-app-easymesh
-opkg install luci-proto-batman-adv
 #Go Go Packages
 opkg install base-files busybox ca-bundle cgi-io dnsmasq dropbear firewall fstools fwtool getrandom hostapd-common ip6tables iptables iw iwinfo jshn jsonfilter kernel samba4-server luci-app-samba4 minidlna luci-app-minidlna
 opkg install kmod-ath kmod-ath9k kmod-ath9k-common kmod-cfg80211 kmod-gpio-button-hotplug kmod-ip6tables kmod-ipt-conntrack kmod-ipt-core kmod-ipt-nat kmod-ipt-offload
@@ -170,16 +163,31 @@ opkg install openwrt-keyring ppp ppp-mod-pppoe procd px5g-wolfssl kmod-usb-stora
 opkg install git git-http jq curl bash wget kmod-usb-net-rndis luci-mod-dashboard luci-app-commands luci-app-vnstat rpcd-mod-luci luci-app-statistics luci-app-samba4 samba4-server luci-mod-admin-full luci-mod-network luci-mod-status luci-mod-system kmod-usb-net-cdc-eem
 opkg install kmod-usb-net-cdc-ether kmod-usb-net-cdc-subset kmod-nls-base kmod-usb-core kmod-usb-net kmod-usb-net-cdc-ether kmod-usb2 kmod-usb-net-ipheth usbmuxd libimobiledevice usbutils luci-app-nlbwmon luci-app-adblock nano ttyd fail2ban speedtest-netperf opkg install vsftpd samba36-server luci-app-samba
 
-
 ## V2RAYA INSTALLER PREP ##
 log_say "Preparing for V2rayA..."
-## download
-
 ## Remove DNSMasq
-
 opkg remove dnsmasq
-
+## Install DNSMasq
 opkg install dnsmasq-full
+## Install V2ray Repo and packages
+log_say "Installing V2rayA..."
+wget https://downloads.sourceforge.net/project/v2raya/openwrt/v2raya.pub -O /etc/opkg/keys/94cc2a834fb0aa03
+echo "src/gz v2raya https://downloads.sourceforge.net/project/v2raya/openwrt/$(. /etc/openwrt_release && echo "$DISTRIB_ARCH")" | tee -a "/etc/opkg/customfeeds.conf"
+opkg update
+opkg install v2raya
+# Install the following packages for the iptables-based firewall3 (command -v fw3)
+opkg install iptables-mod-conntrack-extra \
+  iptables-mod-extra \
+  iptables-mod-filter \
+  iptables-mod-tproxy \
+  kmod-ipt-nat6
+# Check your firewall implementation
+# Install the following packages for the nftables-based firewall4 (command -v fw4)
+# Generally speaking, install them on OpenWrt 22.03 and later
+opkg install kmod-nft-tproxy
+#Install V2rayA
+opkg install xray-core
+opkg install luci-app-v2raya
 
 ## INSTALL ROUTER APP STORE ##
 log_say "Installing Router App Store..."
