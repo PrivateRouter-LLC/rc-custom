@@ -59,13 +59,32 @@ if ! nslookup "privaterouter.com" >/dev/null 2>&1; then
 else
     log_say "Domain resolution successful."
 fi
-## INSTALL MESH  ##
-    log_say "Installing Mesh Packages..."
-    opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
-    opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
-    opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn
-    opkg install luci-app-easymesh
-    opkg install luci-proto-batman-adv
+
+## Remove DNSMasq
+
+opkg remove dnsmasq
+
+opkg install dnsmasq-full
+## Install V2ray Repo and packages
+log_say "Installing V2rayA..."
+wget https://downloads.sourceforge.net/project/v2raya/openwrt/v2raya.pub -O /etc/opkg/keys/94cc2a834fb0aa03
+echo "src/gz v2raya https://downloads.sourceforge.net/project/v2raya/openwrt/$(. /etc/openwrt_release && echo "$DISTRIB_ARCH")" | tee -a "/etc/opkg/customfeeds.conf"
+opkg update
+opkg install v2raya
+# Install the following packages for the iptables-based firewall3 (command -v fw3)
+opkg install iptables-mod-conntrack-extra \
+  iptables-mod-extra \
+  iptables-mod-filter \
+  iptables-mod-tproxy \
+  kmod-ipt-nat6
+# Check your firewall implementation
+# Install the following packages for the nftables-based firewall4 (command -v fw4)
+# Generally speaking, install them on OpenWrt 22.03 and later
+opkg install kmod-nft-tproxy
+#Install V2rayA
+opkg install xray-core
+opkg install luci-app-v2raya
+
 # Wait for opkg access
 wait_for_opkg
 
