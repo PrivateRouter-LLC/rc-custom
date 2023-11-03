@@ -199,15 +199,7 @@ if [ -f /etc/pr-mini ]; then
         touch /root/.dhcpfix-done
     fi
 
-    log_say "Installing mesh packages"
-    ## INSTALL MESH  ##
-    log_say "Installing Mesh Packages..."
-    opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp
-    opkg remove wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl openwisp-monitoring openwisp-config
-    opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn 
-    opkg install /etc/luci-app-easymesh_2.4_all.ipk
-    opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
-    
+  
     log_say "Installing packages for a mini device"
     opkg install wireguard-tools ath10k-board-qca4019 ath10k-board-qca9888 ath10k-board-qca988x ath10k-firmware-qca4019-ct ath10k-firmware-qca9888-ct ath10k-firmware-qca988x-ct attr avahi-dbus-daemon base-files block-mount busybox ca-bundle certtool cgi-io dbus dropbear e2fsprogs fdisk firewall fstools fwtool
     opkg install getrandom hostapd-common ip-full ip6tables ipq-wifi-linksys_mr8300-v0 ipset iptables iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-ath kmod-ath10k-ct kmod-ath9k kmod-ath9k-common kmod-cfg80211 kmod-crypto-crc32c kmod-crypto-hash kmod-crypto-kpp kmod-crypto-lib-blake2s kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519 kmod-crypto-lib-poly1305 kmod-fs-exfat kmod-fs-ext4
@@ -247,7 +239,10 @@ else
         log_say "/etc/config/dhcp exists and /etc/config/dhcp.pr exists so we remove the existing dhcp file"
         rm /etc/config/dhcp
     fi
+    opkg install dnsmasq-full
     
+    log_say "Installing x86 packages and Docker Support"
+
     log_say "fixing mod dashboard css"
     opkg install luci-mod-dashboard
     rm /www/luci-static/resources/view/dashboard/css/custom.css
@@ -365,13 +360,19 @@ boot() {
 	start
 }
 EOL
-    log_say "Installing packages with Docker Support"
+    
+    log_say "Installing mesh packages"
+    ## INSTALL MESH  ##
+    log_say "Installing Mesh Packages..."
+    opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp
+    opkg remove wpa-supplicant-basic wpa-supplicant wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl openwisp-monitoring openwisp-config
+    opkg install wpa-supplicant-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn 
+    opkg install wpa-supplicant-mesh-openssl --force-overwrite
+    opkg install wpa-supplicant-mesh-openssl --force-depends
+    opkg install luci-app-easymesh
+    opkg install luci-proto-batman-adv
     ## V2RAYA INSTALLER PREP ##
     log_say "Preparing for V2rayA..."
-    ## Remove DNSMasq
-    opkg remove dnsmasq
-    ## Install DNSMasq
-    opkg install dnsmasq-full
     ## Install V2ray Repo and packages
     log_say "Installing V2rayA..."
     wget https://downloads.sourceforge.net/project/v2raya/openwrt/v2raya.pub -O /etc/opkg/keys/94cc2a834fb0aa03
