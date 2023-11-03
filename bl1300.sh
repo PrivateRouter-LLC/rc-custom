@@ -169,6 +169,32 @@ opkg install luci-proto-ipv6 luci-proto-ppp luci-ssl luci-theme-bootstrap luci-m
 opkg install netifd odhcp6c odhcpd-ipv6only openwrt-keyring opkg ppp ppp-mod-pppoe procd
 opkg install openwrt-keyring ppp ppp-mod-pppoe procd px5g-wolfssl kmod-usb-storage block-mount kmod-fs-ext4 kmod-fs-exfat fdisk luci-compat luci-lib-ipkg
 
+## V2RAYA INSTALLER PREP ##
+log_say "Preparing for V2rayA..."
+## Remove DNSMasq
+opkg remove dnsmasq
+## Install DNSMasq
+opkg install dnsmasq-full
+## Install V2ray Repo and packages
+log_say "Installing V2rayA..."
+wget https://downloads.sourceforge.net/project/v2raya/openwrt/v2raya.pub -O /etc/opkg/keys/94cc2a834fb0aa03
+echo "src/gz v2raya https://downloads.sourceforge.net/project/v2raya/openwrt/$(. /etc/openwrt_release && echo "$DISTRIB_ARCH")" | tee -a "/etc/opkg/customfeeds.conf"
+opkg update
+opkg install v2raya
+# Install the following packages for the iptables-based firewall3 (command -v fw3)
+opkg install iptables-mod-conntrack-extra \
+  iptables-mod-extra \
+  iptables-mod-filter \
+  iptables-mod-tproxy \
+  kmod-ipt-nat6
+# Check your firewall implementation
+# Install the following packages for the nftables-based firewall4 (command -v fw4)
+# Generally speaking, install them on OpenWrt 22.03 and later
+opkg install kmod-nft-tproxy
+#Install V2rayA
+opkg install xray-core
+opkg install luci-app-v2raya
+
 ## INSTALL ROUTER APP STORE ##
 log_say "Installing Router App Store..."
 opkg install tgrouterappstore luci-app-poweroff luci-app-wizard 
