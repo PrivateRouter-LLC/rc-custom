@@ -371,6 +371,7 @@ EOL
     opkg install wpa-supplicant-mesh-openssl --force-depends
     opkg install luci-app-easymesh
     opkg install luci-proto-batman-adv
+    opkg install hostapd-utils hostapd
     ## V2RAYA INSTALLER PREP ##
     log_say "Preparing for V2rayA..."
     ## Install V2ray Repo and packages
@@ -393,17 +394,6 @@ EOL
     opkg install xray-core
     opkg install luci-app-v2raya
     
-    ## INSTALL MESH  ##
-    log_say "Installing Mesh Packages..."
-    opkg install hostapd-utils hostapd
-    opkg install luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp openwisp-monitoring openwisp-config
-    opkg remove wpad wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl 
-    opkg install wpad-mesh-openssl --force-depends
-    opkg install kmod-batman-adv
-    opkg install batctl 
-    opkg install avahi-autoipd batctl-full luci-app-dawn
-    opkg install /etc/luci-app-easymesh_2.4_all.ipk --force-depends
-    opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
     log_say "fixing mod dashboard css"
     opkg install luci-mod-dashboard
     rm /www/luci-static/resources/view/dashboard/css/custom.css
