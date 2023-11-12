@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
-# PrivateRouter Update Script
+# /etc/udpate.sh PrivateRouter Update Script
+
+# Get the name of the script without the path
+SCRIPT_NAME=$(basename "$0")
+
+# Count the number of running instances of the script (excluding the current one)
+NUM_INSTANCES=$(pgrep -f "${SCRIPT_NAME}" | grep -v "$$" | wc -l)
+
+# If more than one instance is found, exit
+if [ "$NUM_INSTANCES" -gt 1 ]; then
+    log_say "${SCRIPT_NAME} is already running, exiting."
+    exit 1
+fi
 
 # Log to the system log and echo if needed
 log_say()
@@ -7,7 +19,51 @@ log_say()
     SCRIPT_NAME=$(basename "$0")
     echo "${SCRIPT_NAME}: ${1}"
     logger "${SCRIPT_NAME}: ${1}"
+    echo "${SCRIPT_NAME}: ${1}" >> "/tmp/${SCRIPT_NAME}.log"
 }
+
+install_packages() {
+    # Install packages
+    log_say "Installing packages: ${1}"
+    local count=$(echo "${1}" | wc -w)
+    log_say "Packages to install: ${count}"
+
+    for package in ${1}; do
+        if ! opkg list-installed | grep -q "^$package -"; then
+            log_say "Installing $package..."
+            # use --force-maintainer to preserve the existing config
+            opkg install --force-maintainer $package
+            if [ $? -eq 0 ]; then
+                log_say "$package installed successfully."
+            else
+                log_say "Failed to install $package."
+            fi
+        else
+            log_say "$package is already installed."
+        fi
+    done
+}
+
+# Command to wait for Internet connection
+wait_for_internet() {
+    while ! ping -q -c3 1.1.1.1 >/dev/null 2>&1; do
+        log_say "Waiting for Internet connection..."
+        sleep 1
+    done
+    log_say "Internet connection established"
+}
+
+wait_for_internet
+
+# Perform the DNS resolution check
+if ! nslookup "privaterouter.com" >/dev/null 2>&1; then
+    log_say "Domain resolution failed. Setting DNS server to 1.1.1.1."
+
+    # Update resolv.conf with the new DNS server
+    echo "nameserver 1.1.1.1" > /etc/resolv.conf
+else
+    log_say "Domain resolution successful."
+fi
 
 log_say "                                                                      "
 log_say " ███████████             ███                         █████            "
@@ -29,69 +85,6 @@ log_say " ░███    ░███ ░███ ░███ ░███ �
 log_say " █████   █████░░██████  ░░████████  ░░█████ ░░██████  █████           "
 log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░░░░░    ░░░░░   ░░░░░░  ░░░░░            "
 
-# Command to wait for Internet connection
-wait_for_internet() {
-    while ! ping -q -c3 1.1.1.1 >/dev/null 2>&1; do
-        log_say "Waiting for Internet connection..."
-        sleep 1
-    done
-    log_say "Internet connection established"
-}
-
-# Command to wait for opkg to finish
-wait_for_opkg() {
-  while pgrep -x opkg >/dev/null; do
-    log_say "Waiting for opkg to finish..."
-    sleep 1
-  done
-  log_say "opkg is released, our turn!"
-}
-
-# Wait for Internet connection
-wait_for_internet
-
-# Perform the DNS resolution check
-if ! nslookup "privaterouter.com" >/dev/null 2>&1; then
-    log_say "Domain resolution failed. Setting DNS server to 1.1.1.1."
-
-    # Update resolv.conf with the new DNS server
-    echo "nameserver 1.1.1.1" > /etc/resolv.conf
-else
-    log_say "Domain resolution successful."
-fi
-
-# Wait for opkg to finish
-wait_for_opkg
-
-# Set this to 0 to disable Tankman theme
-TANKMAN_FLAG=1
-
-# This file is our marker to know the first run init script has already ran
-INIT_MARKER="/usr/lib/opkg/info/tankman.list"
-
-# If we are online and our tankman flag is enabled (and we have not already been ran before), do our setup script
-[ ${TANKMAN_FLAG} = "1" ] && [ ! -f "${INIT_MARKER}" ] && {
-        #Install Argon Tankman theme
-        log_say "Installing custom Argon Tankman Theme"
-        opkg install /etc/luci-theme-argon*.ipk
-        opkg install /etc/luci-app-argon*.ipk
-
-        tar xzvf /etc/logo.tar.gz -C /www/luci-static/argon/
-        tar xzvf /etc/dockerman.tar.gz -C /usr/lib/lua/luci/model/cbi/dockerman/
-
-        # Delete the background files from /www/luci-static/argon/background
-        # Comment these lines out if you want to avoid bing backgrounds
-        rm -rf /www/luci-static/argon/background/mahsa_amini.png
-        rm -rf /www/luci-static/argon/background/tankman.mp4
-
-        # Marker set so we know theme has been installed
-        log_say "Set our marker file to know our tankman theme install has already ran"
-        touch "${INIT_MARKER}"
-} || {
-        # No need to run setup script
-        log_say "We do not need to run the PrivateRouter Tankman Theme Setup Script or it has already ran"
-}
-
 # Check if we need to update our updater scripts
 log_say "Beginning update-scripts up to date check"
 
@@ -102,25 +95,20 @@ UPDATER_LOCATION="/root/update-scripts"
 
 CURRENT_HASH=$(
     curl \
-        --silent https://api.github.com/repos/PrivateRouter-LLC/update-scripts/commits/main |
+        --silent https://api.github.com/repos/PrivateRouter-LLC/update-scripts/commits/main | \
         jq --raw-output '.sha'
 )
 
-if [ -f "${HASH_STORE}" ]; then
+if [ -f "${HASH_STORE}" ] && [ ! -z "${CURRENT_HASH}" ]; then
     log_say "Update Script Found ${HASH_STORE}"
     CHECK_HASH=$(cat ${HASH_STORE})
     log_say "Update Script Check Hash ${CHECK_HASH}"
     [[ "${CHECK_HASH}" != "${CURRENT_HASH}" ]] && {
         log_say "Update Script ${CHECK_HASH} != ${CURRENT_HASH}"
         UPDATE_NEEDED="1"
-        echo "${CURRENT_HASH}" > "${HASH_STORE}"
-        log_say "Update Script Wrote ${CURRENT_HASH} > ${HASH_STORE}"
     }
 else
     log_say "Update Script ${HASH_STORE} did not exist"
-    touch "${HASH_STORE}"
-    echo "${CURRENT_HASH}" > "${HASH_STORE}"
-    log_say "Update Script Wrote ${CURRENT_HASH} > ${HASH_STORE}"
     UPDATE_NEEDED="1"
 fi
 
@@ -147,106 +135,81 @@ if [[ "${UPDATE_NEEDED}" == "1" || ! -d ${UPDATER_LOCATION} ]]; then
     }
 
     log_say "Update Script Cloning ${GIT_URL} into ${TMP_DIR}"
-    git clone --depth=1 "${GIT_URL}" "${TMP_DIR}"
+    while ! git clone --depth=1 "${GIT_URL}" "${TMP_DIR}" >/dev/null 2>&1; do
+        log_say "... Waiting to clone the update script repo ..."
+        sleep 1
+    done
+    # Verify it downloaded successfully
+    if [ -d "${TMP_DIR}" ]; then    
+        log_say "Update Script Cleaning up .git folder"
+        rm -rf "${TMP_DIR}/.git"
 
-    log_say "Update Script Cleaning up .git folder"
-    rm -rf "${TMP_DIR}/.git"
+        [ -d "${UPDATER_LOCATION}" ] && { log_say "Update Script Removing old ${UPDATER_LOCATION}"; rm -rf "${UPDATER_LOCATION}"; }
 
-    [ -d "${UPDATER_LOCATION}" ] && { log_say "Update Script Removing old ${UPDATER_LOCATION}"; rm -rf "${UPDATER_LOCATION}"; }
+        log_say "Update Script Moving ${TMP_DIR} to ${UPDATER_LOCATION}"
+        mv "${TMP_DIR}" "${UPDATER_LOCATION}"
 
-    log_say "Update Script Moving ${TMP_DIR} to ${UPDATER_LOCATION}"
-    mv "${TMP_DIR}" "${UPDATER_LOCATION}"
+        echo "${CURRENT_HASH}" > "${HASH_STORE}"
+        log_say "Update Script Wrote ${CURRENT_HASH} > ${HASH_STORE}"
 
-    [ -f "${UPDATER_LOCATION}/crontabs" ] && {
-        log_say "Update Script Inserting crontabs for updaters and restarting the cron service"
-        cat "${UPDATER_LOCATION}/crontabs" >> /etc/crontabs/root
-        /etc/init.d/cron restart
-    }
+        [ -f "${UPDATER_LOCATION}/crontabs" ] && {
+            log_say "Update Script Inserting crontabs for updaters and restarting the cron service"
+            cat "${UPDATER_LOCATION}/crontabs" >> /etc/crontabs/root
+            /etc/init.d/cron restart
+        }
 
-    [ -f "${UPDATER_LOCATION}/first-run.sh" ] && {
-        log_say "Running the commands in the first-run.sh script."
-        bash "${UPDATER_LOCATION}/first-run.sh"
-    }
+        [ -f "${UPDATER_LOCATION}/first-run.sh" ] && {
+            log_say "Running the commands in the first-run.sh script."
+            bash "${UPDATER_LOCATION}/first-run.sh"
+        }
+    else
+        log_say "We were not able to download our update scripts"
+        #reboot
+        exit 1
+    fi
 else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
 
-# Update and install all of our packages
-log_say "updating all packages!"
+# Wait until we can run opkg update, if it fails try again
+while ! opkg update >/dev/null 2>&1; do
+    log_say "... Waiting to update opkg ..."
+    sleep 1
+done
 
-log_say "NOTE: Since x86 does not currently have a stage2, we handle the install packages here"
+log_say "Install PrivateRouter Theme"
+install_packages "luci-theme-privaterouter luci-mod-dashboard"
+# Make sure theme installed ok, if so set it default
+$(opkg list-installed | grep -q "^luci-theme-privaterouter") && {
+    # Fix the CSS for the dashboard
+    log_say "Fixing the CSS for the dashboard"
+    [ ! -d /www/luci-static/resources/view/dashboard/css ] && mkdir -p /www/luci-static/resources/view/dashboard/css
+    curl -o /www/luci-static/resources/view/dashboard/css/custom.css https://gist.githubusercontent.com/FixedBit/36327dd57f769f43c7058212a42ff65e/raw/d07d5ab89b27a62651871a4cc9fb7710445493d7/gistfile1.txt 
+    # Set it as the default theme
+    log_say "Setting the PrivateRouter theme as the default"
+    uci set luci.main.mediaurlbase='/luci-static/privaterouter'
+    uci commit luci
+}
 
-opkg update
-# Check if the file /etc/pr-mini exists, if it does we are on a device with smaller storage, otherwise we install all the packages
-if [ -f /etc/pr-mini ]; then
-
-    if [[ ! -f /etc/config/dhcp && -f /etc/config/dhcp.pr && ! -f /root/.dhcpfix-done ]]; then
-        # Install our packages
-        log_say "Fix dnsmasq problem"
-        echo "nameserver 1.1.1.1" > /etc/resolv.conf
-        opkg remove dnsmasq
-        # The point here is to verify that we have a dhcp.pr file to put into place after the packages install
-        # so if we have dhcp but no dhcp.pr, we move dhcp to dhcp.pr
-        # if we have dhcp and dhcp.pr, we remove dhcp
-        if [[ -f /etc/config/dhcp && ! -f /etc/config/dhcp.pr ]]; then
-            log_say "/etc/config/dhcp exists but no /etc/config/dhcp.pr so we use our existing dhcp file"
-            mv /etc/config/dhcp /etc/config/dhcp.pr
-        elif [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then
-            log_say "/etc/config/dhcp exists and /etc/config/dhcp.pr exists so we remove the existing dhcp file"
-            rm /etc/config/dhcp
-        fi
-        opkg install dnsmasq-full
-        touch /root/.dhcpfix-done
-    fi
-
-  
-    log_say "Installing packages for a mini device"
-    opkg install wireguard-tools ath10k-board-qca4019 ath10k-board-qca9888 ath10k-board-qca988x ath10k-firmware-qca4019-ct ath10k-firmware-qca9888-ct ath10k-firmware-qca988x-ct attr avahi-dbus-daemon base-files block-mount busybox ca-bundle certtool cgi-io dbus dropbear e2fsprogs fdisk firewall fstools fwtool
-    opkg install getrandom hostapd-common ip-full ip6tables ipq-wifi-linksys_mr8300-v0 ipset iptables iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-ath kmod-ath10k-ct kmod-ath9k kmod-ath9k-common kmod-cfg80211 kmod-crypto-crc32c kmod-crypto-hash kmod-crypto-kpp kmod-crypto-lib-blake2s kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519 kmod-crypto-lib-poly1305 kmod-fs-exfat kmod-fs-ext4
-    opkg install kmod-gpio-button-hotplug kmod-hwmon-core kmod-ip6tables kmod-ipt-conntrack kmod-ipt-core kmod-ipt-ipopt kmod-ipt-ipset kmod-ipt-nat kmod-ipt-offload kmod-leds-gpio kmod-lib-crc-ccitt kmod-lib-crc16 kmod-mac80211 kmod-mii kmod-nf-conntrack
-    opkg install kmod-nf-conntrack6 kmod-nf-flow kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nf-reject kmod-nf-reject6 kmod-nfnetlink kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-scsi-core kmod-slhc kmod-tun
-    opkg install kmod-udptunnel4 kmod-udptunnel6 kmod-usb-core kmod-usb-dwc3 kmod-usb-dwc3-qcom kmod-usb-ehci kmod-usb-ledtrig-usbport kmod-usb-net kmod-usb-net-cdc-eem kmod-usb-net-cdc-ether kmod-usb-net-cdc-ncm kmod-usb-net-cdc-subset kmod-usb-net-ipheth kmod-usb-storage kmod-usb2
-    opkg install kmod-usb3 kmod-wireguard libatomic1 libattr libavahi-client ath10k-board-qca4019 ath10k-board-qca9888 ath10k-board-qca988x ath10k-firmware-qca4019-ct ath10k-firmware-qca9888-ct ath10k-firmware-qca988x-ct attr avahi-dbus-daemon base-files block-mount busybox ca-bundle
-    opkg install certtool cgi-io dbus dropbear e2fsprogs fdisk firewall fstools fwtool getrandom hostapd-common ip-full ip6tables ipq-wifi-linksys_mr8300-v0 ipset iptables iptables-mod-ipopt iw iwinfo jshn jsonfilter kernel kmod-ath kmod-ath10k-ct kmod-ath9k kmod-ath9k-common
-    opkg install kmod-cfg80211 kmod-crypto-crc32c kmod-crypto-hash kmod-crypto-kpp kmod-crypto-lib-blake2s kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519 kmod-crypto-lib-poly1305 kmod-fs-exfat kmod-fs-ext4 kmod-gpio-button-hotplug kmod-hwmon-core
-    opkg install kmod-ip6tables kmod-ipt-conntrack kmod-ipt-core kmod-ipt-ipopt kmod-ipt-ipset kmod-ipt-nat kmod-ipt-offload kmod-leds-gpio kmod-lib-crc-ccitt kmod-lib-crc16 kmod-mac80211 kmod-mii kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-flow kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nf-reject
-    opkg install kmod-nf-reject6 kmod-nfnetlink kmod-nls-base kmod-ppp kmod-pppoe kmod-pppox kmod-scsi-core kmod-slhc kmod-tun kmod-udptunnel4 kmod-udptunnel6 kmod-usb-core kmod-usb-dwc3 kmod-usb-dwc3-qcom kmod-usb-ehci kmod-usb-ledtrig-usbport kmod-usb-net kmod-usb-net-cdc-eem kmod-usb-net-cdc-ether
-    opkg install kmod-usb-net-cdc-ncm kmod-usb-net-cdc-subset kmod-usb-net-ipheth kmod-usb-storage kmod-usb2 kmod-usb3 kmod-wireguard libatomic1 libattr libavahi-client minidlna mtd netifd odhcp6c odhcpd-ipv6only openconnect openssh-sftp-client
-    opkg install openvpn-openssl openwrt-keyring opkg ppp ppp-mod-pppoe procd resolveip rpcd rpcd-mod-file rpcd-mod-iwinfo rpcd-mod-luci rpcd-mod-rrdns samba4-libs samba4-server socksify swconfig terminfo ubi-utils uboot-envtools ubox ubus ubusd uci uclient-fetch uhttpd uhttpd-mod-ubus
-    opkg install urandom-seed urngd usbids usbmuxd usbutils usign vpn-policy-routing vpnbypass vpnc-scripts watchcat wireguard-tools wireless-regdb wpad-basic-wolfssl
-    opkg install zlib kmod-usb-storage block-mount luci-app-minidlna kmod-fs-ext4 kmod-fs-exfat fdisk luci-compat luci-lib-ipkg luci-proto-wireguard luci-app-wireguard luci-i18n-wireguard-en vpn-policy-routing vpnbypass vpnc-scripts watchcat wg-installer-client
-    opkg install wireguard-tools luci-app-openvpn luci-app-vpn-policy-routing luci-app-vpnbypass luci-app-watchcat luci-app-wireguard
-    opkg install jshn ip ipset iptables iptables-mod-tproxy resolveip
-
-    if [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then 
-        rm -f /etc/config/dhcp
-        mv /etc/config/dhcp.pr /etc/config/dhcp
-        service dnsmasq restart
-    fi
-
-else
-
-    # Install our packages
-    log_say "Fix dnsmasq problem"
+# Check and fix dnsmsaq
+log_say "Checking if dnsmsaq-full is installed"
+if ! opkg list-installed | grep -q "^dnsmasq-full "; then
+    log_say "Removing original dnsmasq and installing dnsmasq-full"
     opkg remove dnsmasq
-    # The point here is to verify that we have a dhcp.pr file to put into place after the packages install
-    # so if we have dhcp but no dhcp.pr, we move dhcp to dhcp.pr
-    # if we have dhcp and dhcp.pr, we remove dhcp
-    if [[ -f /etc/config/dhcp && ! -f /etc/config/dhcp.pr ]]; then
-        log_say "/etc/config/dhcp exists but no /etc/config/dhcp.pr so we use our existing dhcp file"
-        mv /etc/config/dhcp /etc/config/dhcp.pr
-    elif [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then
-        log_say "/etc/config/dhcp exists and /etc/config/dhcp.pr exists so we remove the existing dhcp file"
-        rm /etc/config/dhcp
+    # use --force-maintainer to preserve the existing config
+    opkg install --force-maintainer dnsmasq-full
+    if [ $? -eq 0 ]; then
+        log_say "dnsmasq-full installed successfully."
+    else
+        log_say "Failed to install dnsmasq-full."
     fi
-    opkg install dnsmasq-full
-    
+fi 
+
+
     log_say "Installing x86 packages and Docker Support"
 
-    log_say "fixing mod dashboard css"
     opkg install luci-mod-dashboard
-    rm /www/luci-static/resources/view/dashboard/css/custom.css
-    cp -f /etc/custom.css /www/luci-static/resources/view/dashboard/css/custom.css
+
     log_say "Install LXC and related packages"
     opkg install lxc lxc-attach lxc-auto lxc-autostart lxc-cgroup lxc-checkconfig lxc-common lxc-config lxc-configs 
     opkg install lxc-console lxc-copy lxc-create lxc-destroy lxc-device lxc-execute lxc-freeze lxc-hooks lxc-info lxc-init 
@@ -361,43 +324,22 @@ boot() {
 }
 EOL
     
-    log_say "Installing mesh packages"
-    ## INSTALL MESH  ##
-    log_say "Installing Mesh Packages..."
-    opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard luci-app-openwisp
-    opkg remove wpa-supplicant-basic wpa-supplicant wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl openwisp-monitoring openwisp-config
-    opkg install wpa-supplicant-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn 
-    opkg install wpa-supplicant-mesh-openssl --force-overwrite
-    opkg install wpa-supplicant-mesh-openssl --force-depends
-    opkg install luci-app-easymesh
-    opkg install luci-proto-batman-adv
-    opkg install hostapd-utils hostapd
     ## V2RAYA INSTALLER PREP ##
-    log_say "Preparing for V2rayA..."
+    #log_say "Preparing for V2rayA..."
     ## Install V2ray Repo and packages
-    log_say "Installing V2rayA..."
-    wget https://downloads.sourceforge.net/project/v2raya/openwrt/v2raya.pub -O /etc/opkg/keys/94cc2a834fb0aa03
-    echo "src/gz v2raya https://downloads.sourceforge.net/project/v2raya/openwrt/$(. /etc/openwrt_release && echo "$DISTRIB_ARCH")" | tee -a "/etc/opkg/customfeeds.conf"
-    opkg update
-    opkg install v2raya
+    #log_say "Installing V2rayA..."
+    #wget https://downloads.sourceforge.net/project/v2raya/openwrt/v2raya.pub -O /etc/opkg/keys/94cc2a834fb0aa03
+    #echo "src/gz v2raya https://downloads.sourceforge.net/project/v2raya/openwrt/$(. /etc/openwrt_release && echo "$DISTRIB_ARCH")" | tee -a "/etc/opkg/customfeeds.conf"
+    #opkg update
+    #opkg install v2raya
+
     # Install the following packages for the iptables-based firewall3 (command -v fw3)
-    opkg install iptables-mod-conntrack-extra \
-    iptables-mod-extra \
-    iptables-mod-filter \
-    iptables-mod-tproxy \
-    kmod-ipt-nat6
+    opkg install iptables-mod-conntrack-extra iptables-mod-extra iptables-mod-filter  iptables-mod-tproxy kmod-ipt-nat6
     # Check your firewall implementation
     # Install the following packages for the nftables-based firewall4 (command -v fw4)
     # Generally speaking, install them on OpenWrt 22.03 and later
     opkg install kmod-nft-tproxy
-    #Install V2rayA
-    opkg install xray-core
-    opkg install luci-app-v2raya
     
-    log_say "fixing mod dashboard css"
-    opkg install luci-mod-dashboard
-    rm /www/luci-static/resources/view/dashboard/css/custom.css
-    cp -f /etc/custom.css /www/luci-static/resources/view/dashboard/css/custom.css
     opkg install attr avahi-dbus-daemon base-files busybox ca-bundle certtool cgi-io curl davfs2 dbus luci-app-uhttpd frpc luci-app-frpc kmod-rtl8xxxu rtl8188eu-firmware kmod-rtl8192ce kmod-rtl8192cu kmod-rtl8192de dcwapd
     opkg install jq bash git-http kmod-mwifiex-pcie kmod-mwifiex-sdio kmod-rtl8723bs kmod-rtlwifi kmod-rtlwifi-btcoexist kmod-rtlwifi-pci kmod-rtlwifi-usb kmod-wil6210 libuwifi
     opkg install kmod-8139cp kmod-8139too kmod-net-rtl8192su kmod-phy-realtek kmod-r8169 kmod-rtl8180 kmod-rtl8187 kmod-rtl8192c-common kmod-rtl8192ce kmod-rtl8192cu kmod-rtl8192de kmod-rtl8192se kmod-rtl8812au-ct kmod-rtl8821ae kmod-rtl8xxxu kmod-rtlwifi kmod-rtlwifi-btcoexist
@@ -431,32 +373,23 @@ EOL
     opkg install dnsmasq-full
     opkg install luci-app-fileassistant
     opkg install luci-app-plugsy
-    opkg remove tgsstp
-    opkg remove tgopenvpn
-    opkg remove tganyconnect
-    opkg remove luci-app-shortcutmenu
-    opkg remove luci-app-webtop
-    opkg remove luci-app-nextcloud
-    opkg remove luci-app-seafile
-    opkg install /etc/luci-app-megamedia_git-23.251.42088-cdbc3cb_all.ipk
-    opkg install /etc/luci-app-webtop_git-23.251.39494-1b8885d_all.ipk
-    opkg install /etc/luci-app-shortcutmenu_git-23.251.38707-d0c2502_all.ipk
-    opkg install /etc/tgsstp_git-23.251.15457-c428b60_all.ipk
-    opkg install /etc/tganyconnect_git-23.251.15499-9fafcfe_all.ipk
-    opkg install /etc/tgopenvpn_git-23.251.15416-16e4649_all.ipk
-    opkg install /etc/luci-app-seafile_git-23.251.23441-a760a47_all.ipk
-    opkg install /etc/luci-app-nextcloud_git-23.251.23529-ee6a72e_all.ipk
-    opkg install /etc/luci-app-whoogle_git-23.250.10284-cdadc0b_all.ipk
-    opkg install /etc/luci-theme-privaterouter_0.3.1-8_all.ipk
-
-    if [[ -f /etc/config/dhcp && -f /etc/config/dhcp.pr ]]; then 
-        rm -f /etc/config/dhcp
-        mv /etc/config/dhcp.pr /etc/config/dhcp
-        service dnsmasq restart
-    fi    
-
-# End of our /etc/pr-mini check
-fi
+    #opkg remove tgsstp
+    #opkg remove tgopenvpn
+    #opkg remove tganyconnect
+    #opkg remove luci-app-shortcutmenu
+    #opkg remove luci-app-webtop
+    #opkg remove luci-app-nextcloud
+    #opkg remove luci-app-seafile
+    #opkg install /etc/luci-app-megamedia_git-23.251.42088-cdbc3cb_all.ipk
+    #opkg install /etc/luci-app-webtop_git-23.251.39494-1b8885d_all.ipk
+    #opkg install /etc/luci-app-shortcutmenu_git-23.251.38707-d0c2502_all.ipk
+    #opkg install /etc/tgsstp_git-23.251.15457-c428b60_all.ipk
+    #opkg install /etc/tganyconnect_git-23.251.15499-9fafcfe_all.ipk
+    #opkg install /etc/tgopenvpn_git-23.251.15416-16e4649_all.ipk
+    #opkg install /etc/luci-app-seafile_git-23.251.23441-a760a47_all.ipk
+    #opkg install /etc/luci-app-nextcloud_git-23.251.23529-ee6a72e_all.ipk
+    #opkg install /etc/luci-app-whoogle_git-23.250.10284-cdadc0b_all.ipk
+    #opkg install /etc/luci-theme-privaterouter_0.3.1-8_all.ipk
 
 
 log_say "Removing NFtables and Firewall4, Replacing with legacy packages"
@@ -468,17 +401,11 @@ opkg install luci
 opkg install luci-ssl
 opkg install iptables-mod-extra kmod-br-netfilter kmod-ikconfig kmod-nf-conntrack-netlink kmod-nf-ipvs kmod-nf-nat iptables-zz-legacy
 
-# Mini Routers do not install docker packages
-[ -f /etc/pr-mini ] || {
-    log_say "Installing Docker related packages"
-    opkg install dockerd
-    opkg install docker-compose
-    opkg install luci-app-dockerman
-    tar xzvf /etc/dockerman.tar.gz -C /usr/lib/lua/luci/model/cbi/dockerman/
-    chmod +x /usr/bin/dockerdeploy
-}
-
-sed -i '/root/s/\/bin\/ash/\/bin\/bash/g' /etc/passwd
+# Check /etc/passwd to see if root's shell is ash, if it is, change it to bash
+if grep -q "/root:/bin/ash" /etc/passwd; then
+    log_say "Changing root's shell from ash to bash"
+    sed -i '/root/s/\/bin\/ash/\/bin\/bash/g' /etc/passwd
+fi
 
 log_say "PrivateRouter update complete!"
 
