@@ -55,14 +55,6 @@ log_say "░░░░░   ░░░░░  ░░░░░░    ░░░░�
 # Set our router's dns
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
 
-log_say "Installing mesh packages"
- ## INSTALL MESH  ##
- opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
- opkg remove wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
- opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn
- opkg install /etc/luci-app-easymesh_2.4_all.ipk
- opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
-
 # Set this to 0 to disable Tankman theme
 TANKMAN_FLAG=1
 
@@ -169,6 +161,26 @@ if [[ "${UPDATE_NEEDED}" == "1" || ! -d ${UPDATER_LOCATION} ]]; then
 else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
+
+# Wait until we can run opkg update, if it fails try again
+while ! opkg update >/dev/null 2>&1; do
+    log_say "... Waiting to update opkg ..."
+    sleep 1
+done
+
+log_say "Install PrivateRouter Theme"
+install_packages "luci-theme-privaterouter luci-mod-dashboard"
+# Make sure theme installed ok, if so set it default
+$(opkg list-installed | grep -q "^luci-theme-privaterouter") && {
+    # Fix the CSS for the dashboard
+    log_say "Fixing the CSS for the dashboard"
+    [ ! -d /www/luci-static/resources/view/dashboard/css ] && mkdir -p /www/luci-static/resources/view/dashboard/css
+    curl -o /www/luci-static/resources/view/dashboard/css/custom.css https://gist.githubusercontent.com/FixedBit/36327dd57f769f43c7058212a42ff65e/raw/d07d5ab89b27a62651871a4cc9fb7710445493d7/gistfile1.txt 
+    # Set it as the default theme
+    log_say "Setting the PrivateRouter theme as the default"
+    uci set luci.main.mediaurlbase='/luci-static/privaterouter'
+    uci commit luci
+}
 
 log_say "PrivateRouter update complete!"
 
