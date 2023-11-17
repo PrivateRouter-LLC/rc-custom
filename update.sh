@@ -18,6 +18,8 @@ elif [[ "${BOARD_CHECK}" == *"GL-MT300N"* ]]; then
     bash /root/rc-custom/mt300n.sh
 elif [[ "${BOARD_CHECK}" == *"MR8300"* ]]; then
     bash /root/rc-custom/mr8300.sh
+elif [[ "${BOARD_CHECK}" == *"EA8300"* ]]; then
+    bash /root/rc-custom/ea8300.sh
 elif [[ "${BOARD_CHECK}" == *"R8000"* ]]; then
     bash /root/rc-custom/r8000.sh
 elif [[ "${BOARD_CHECK}" == *"R7800"* ]]; then
