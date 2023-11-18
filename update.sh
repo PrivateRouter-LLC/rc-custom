@@ -36,8 +36,8 @@ elif [[ "${BOARD_CHECK}" == *"GL-E750"* ]]; then
     bash /root/rc-custom/gle750.sh
 elif [[ "${BOARD_CHECK}" == *"GL-XE300"* ]]; then
     bash /root/rc-custom/xe300.sh
-elif [[ "${BOARD_CHECK}" == *"GL-BL1300"* ]]; then
-    bash /root/rc-custom/bl1300.sh
+elif [[ "${BOARD_CHECK}" == *"GL-B1300"* ]]; then
+    bash /root/rc-custom/b1300.sh
 elif [[ "${BOARD_CHECK}" == *"GL-A1300"* ]]; then
     bash /root/rc-custom/a1300.sh
 elif [[ "${BOARD_CHECK}" == *"WRT32X"* ]]; then
