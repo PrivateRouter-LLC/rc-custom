@@ -23,10 +23,13 @@ log_say()
 }
 
 install_packages() {
-    # Install packages
+    # Update the package list
     log_say "Installing packages: ${1}"
     local count=$(echo "${1}" | wc -w)
     log_say "Packages to install: ${count}"
+
+    # Check for upgradable packages
+    local upgradable=$(opkg list-upgradable | cut -d ' ' -f 1)
 
     for package in ${1}; do
         if ! opkg list-installed | grep -q "^$package -"; then
@@ -40,6 +43,19 @@ install_packages() {
             fi
         else
             log_say "$package is already installed."
+            # Check if the package is in the list of upgradable packages
+            if echo "${upgradable}" | grep -q "^$package$"; then
+                log_say "An upgrade is available for $package."
+                log_say "Upgrading $package..."
+                opkg upgrade $package
+                if [ $? -eq 0 ]; then
+                    log_say "$package upgraded successfully."
+                else
+                    log_say "Failed to upgrade $package."
+                fi
+            else
+                log_say "$package is up to date."
+            fi
         fi
     done
 }
@@ -171,6 +187,24 @@ else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
 
+install_privaterouter_repo() {
+    # First we check if the repo is already installed
+    if [ ! -f /etc/opkg/keys/090708f5d9b5b73c ]; then
+        log_say "Installing PrivateRouter repo public key"
+        wget -qO /tmp/public.key https://repo.privaterouter.com/public.key
+        opkg-key add /tmp/public.key
+        rm /tmp/public.key 
+    fi
+    # Next check if the repo is in /etc/opkg/customfeeds.conf
+    if ! grep -q "privaterouter_repo" /etc/opkg/customfeeds.conf; then
+        log_say "Adding PrivateRouter repo to /etc/opkg/customfeeds.conf"
+        echo "src/gz privaterouter_repo https://repo.privaterouter.com" >> /etc/opkg/customfeeds.conf
+    fi
+}
+
+# Install our repo before we update opkg
+install_privaterouter_repo
+
 # Wait until we can run opkg update, if it fails try again
 while ! opkg update >/dev/null 2>&1; do
     log_say "... Waiting to update opkg ..."
@@ -181,14 +215,24 @@ log_say "Install PrivateRouter Theme"
 install_packages "luci-theme-privaterouter luci-mod-dashboard"
 # Make sure theme installed ok, if so set it default
 $(opkg list-installed | grep -q "^luci-theme-privaterouter") && {
-    # Fix the CSS for the dashboard
-    log_say "Fixing the CSS for the dashboard"
-    [ ! -d /www/luci-static/resources/view/dashboard/css ] && mkdir -p /www/luci-static/resources/view/dashboard/css
-    curl -o /www/luci-static/resources/view/dashboard/css/custom.css https://gist.githubusercontent.com/FixedBit/36327dd57f769f43c7058212a42ff65e/raw/d07d5ab89b27a62651871a4cc9fb7710445493d7/gistfile1.txt 
     # Set it as the default theme
-    log_say "Setting the PrivateRouter theme as the default"
-    uci set luci.main.mediaurlbase='/luci-static/privaterouter'
-    uci commit luci
+    SET_PR_THEME_DEFAULT=0
+    if [ "${SET_PR_THEME_DEFAULT}" -eq 1 ]; then
+        # Fix the CSS for the dashboard
+        log_say "Fixing the CSS for the dashboard"
+        [ ! -d /www/luci-static/resources/view/dashboard/css ] && mkdir -p /www/luci-static/resources/view/dashboard/css
+        curl -o /www/luci-static/resources/view/dashboard/css/custom.css https://gist.githubusercontent.com/FixedBit/36327dd57f769f43c7058212a42ff65e/raw/d07d5ab89b27a62651871a4cc9fb7710445493d7/gistfile1.txt 
+
+        # Check if the current theme is 'privaterouter'
+        if [ "$(uci get luci.main.mediaurlbase)" != '/luci-static/privaterouter' ]; then
+            log_say "Setting the PrivateRouter theme as the default"
+            uci set luci.main.mediaurlbase='/luci-static/privaterouter'
+            uci commit luci
+            log_say "PrivateRouter theme has been set as the default."
+        else
+            log_say "PrivateRouter theme is already set as the default."
+        fi
+    fi
 }
 
 # Check and fix dnsmsaq
