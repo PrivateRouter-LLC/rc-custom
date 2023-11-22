@@ -28,6 +28,8 @@ elif [[ "${BOARD_CHECK}" == *"GL-AR300M"* ]]; then
     bash /root/rc-custom/ar300m16.sh
 elif [[ "${BOARD_CHECK}" == *"orangepizero"* ]]; then
     bash /root/rc-custom/orangepizero.sh
+elif [[ "${BOARD_CHECK}" == *"Raspberry"* ]]; then
+    bash /root/rc-custom/raspberry.sh
 elif [[ "${BOARD_CHECK}" == *"GL-AR750S"* ]]; then
     bash /root/rc-custom/ar750s.sh
 elif [[ "${BOARD_CHECK}" == *"GL-MT1300"* ]]; then
