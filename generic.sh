@@ -198,18 +198,39 @@ install_privaterouter_repo() {
     # Next check if the repo is in /etc/opkg/customfeeds.conf
     if ! grep -q "privaterouter_repo" /etc/opkg/customfeeds.conf; then
         log_say "Adding PrivateRouter repo to /etc/opkg/customfeeds.conf"
-        echo "src/gz privaterouter_repo https://repo.privaterouter.com" >> /etc/opkg/customfeeds.conf
+        echo "src/gz privaterouter_repo https://repo.privaterouter.com" | tee -a "/etc/opkg/customfeeds.conf"
     fi
 }
 
 # Install our repo before we update opkg
 install_privaterouter_repo
 
+install_v2raya_repo() {
+    # First we check if the repo is already installed
+    if [ ! -f /etc/opkg/keys/94cc2a834fb0aa03 ]; then
+        log_say "Installing v2raya/sourceforge repo public key"
+        wget -qO /tmp/sf-public.key https://downloads.sourceforge.net/project/v2raya/openwrt/v2raya.pub
+        opkg-key add /tmp/sf-public.key
+        rm /tmp/sf-public.key 
+    fi
+    # Next check if the repo is in /etc/opkg/customfeeds.conf
+    if ! grep -q "v2raya" /etc/opkg/customfeeds.conf; then
+        log_say "Adding v2raya/sourceforge repo to /etc/opkg/customfeeds.conf"
+        echo "src/gz v2raya https://downloads.sourceforge.net/project/v2raya/openwrt/$(. /etc/openwrt_release && echo "$DISTRIB_ARCH")" | tee -a "/etc/opkg/customfeeds.conf"
+    fi
+}
+
+# Install our repo before we update opkg
+install_v2raya_repo
+
 # Wait until we can run opkg update, if it fails try again
 while ! opkg update >/dev/null 2>&1; do
     log_say "... Waiting to update opkg ..."
     sleep 1
 done
+
+log_say "Install v2raya and luci-app-v2raya"
+install_packages "v2raya luci-app-v2raya"
 
 log_say "Install PrivateRouter Theme"
 install_packages "luci-theme-privaterouter luci-mod-dashboard"
