@@ -151,6 +151,13 @@ fi # UPDATE_NEEDED check
 log_say "updating all packages!"
 
 opkg update
+ ## INSTALL MESH PROFILE ##
+log_say "Installing Mesh Packages..."
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
+opkg remove wpad-mbedtls wpad-basic-mbedtls wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
+opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd mesh11sd batctl-full luci-app-dawn
+opkg install luci-app-easymesh
+opkg install luci-proto-batman-adv
 
 opkg install base-files busybox ca-bundle cgi-io dnsmasq dropbear firewall fstools fwtool getrandom hostapd-common ip6tables iptables iw iwinfo jshn jsonfilter kernel kmod-ath kmod-ath9k kmod-ath9k-common kmod-cfg80211 kmod-gpio-button-hotplug kmod-ip6tables
 
