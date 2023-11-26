@@ -23,10 +23,13 @@ log_say()
 }
 
 install_packages() {
-    # Install packages
+    # Update the package list
     log_say "Installing packages: ${1}"
     local count=$(echo "${1}" | wc -w)
     log_say "Packages to install: ${count}"
+
+    # Check for upgradable packages
+    local upgradable=$(opkg list-upgradable | cut -d ' ' -f 1)
 
     for package in ${1}; do
         if ! opkg list-installed | grep -q "^$package -"; then
@@ -40,6 +43,19 @@ install_packages() {
             fi
         else
             log_say "$package is already installed."
+            # Check if the package is in the list of upgradable packages
+            if echo "${upgradable}" | grep -q "^$package$"; then
+                log_say "An upgrade is available for $package."
+                log_say "Upgrading $package..."
+                opkg upgrade $package
+                if [ $? -eq 0 ]; then
+                    log_say "$package upgraded successfully."
+                else
+                    log_say "Failed to upgrade $package."
+                fi
+            else
+                log_say "$package is up to date."
+            fi
         fi
     done
 }
@@ -171,24 +187,73 @@ else
     log_say "Update Script Update is not needed"
 fi # UPDATE_NEEDED check
 
+install_privaterouter_repo() {
+    # First we check if the repo is already installed
+    if [ ! -f /etc/opkg/keys/090708f5d9b5b73c ]; then
+        log_say "Installing PrivateRouter repo public key"
+        wget -qO /tmp/public.key https://repo.privaterouter.com/public.key
+        opkg-key add /tmp/public.key
+        rm /tmp/public.key 
+    fi
+    # Next check if the repo is in /etc/opkg/customfeeds.conf
+    if ! grep -q "privaterouter_repo" /etc/opkg/customfeeds.conf; then
+        log_say "Adding PrivateRouter repo to /etc/opkg/customfeeds.conf"
+        echo "src/gz privaterouter_repo https://repo.privaterouter.com" | tee -a "/etc/opkg/customfeeds.conf"
+    fi
+}
+
+# Install our repo before we update opkg
+install_privaterouter_repo
+
+install_v2raya_repo() {
+    # First we check if the repo is already installed
+    if [ ! -f /etc/opkg/keys/94cc2a834fb0aa03 ]; then
+        log_say "Installing v2raya/sourceforge repo public key"
+        wget -qO /tmp/sf-public.key https://downloads.sourceforge.net/project/v2raya/openwrt/v2raya.pub
+        opkg-key add /tmp/sf-public.key
+        rm /tmp/sf-public.key 
+    fi
+    # Next check if the repo is in /etc/opkg/customfeeds.conf
+    if ! grep -q "v2raya" /etc/opkg/customfeeds.conf; then
+        log_say "Adding v2raya/sourceforge repo to /etc/opkg/customfeeds.conf"
+        echo "src/gz v2raya https://downloads.sourceforge.net/project/v2raya/openwrt/$(. /etc/openwrt_release && echo "$DISTRIB_ARCH")" | tee -a "/etc/opkg/customfeeds.conf"
+    fi
+}
+
+# Install our repo before we update opkg
+install_v2raya_repo
+
 # Wait until we can run opkg update, if it fails try again
 while ! opkg update >/dev/null 2>&1; do
     log_say "... Waiting to update opkg ..."
     sleep 1
 done
 
+log_say "Install v2raya and luci-app-v2raya"
+install_packages "v2raya luci-app-v2raya"
+
 log_say "Install PrivateRouter Theme"
 install_packages "luci-theme-privaterouter luci-mod-dashboard"
 # Make sure theme installed ok, if so set it default
 $(opkg list-installed | grep -q "^luci-theme-privaterouter") && {
-    # Fix the CSS for the dashboard
-    log_say "Fixing the CSS for the dashboard"
-    [ ! -d /www/luci-static/resources/view/dashboard/css ] && mkdir -p /www/luci-static/resources/view/dashboard/css
-    curl -o /www/luci-static/resources/view/dashboard/css/custom.css https://gist.githubusercontent.com/FixedBit/36327dd57f769f43c7058212a42ff65e/raw/d07d5ab89b27a62651871a4cc9fb7710445493d7/gistfile1.txt 
     # Set it as the default theme
-    log_say "Setting the PrivateRouter theme as the default"
-    uci set luci.main.mediaurlbase='/luci-static/privaterouter'
-    uci commit luci
+    SET_PR_THEME_DEFAULT=0
+    if [ "${SET_PR_THEME_DEFAULT}" -eq 1 ]; then
+        # Fix the CSS for the dashboard
+        log_say "Fixing the CSS for the dashboard"
+        [ ! -d /www/luci-static/resources/view/dashboard/css ] && mkdir -p /www/luci-static/resources/view/dashboard/css
+        curl -o /www/luci-static/resources/view/dashboard/css/custom.css https://gist.githubusercontent.com/FixedBit/36327dd57f769f43c7058212a42ff65e/raw/d07d5ab89b27a62651871a4cc9fb7710445493d7/gistfile1.txt 
+
+        # Check if the current theme is 'privaterouter'
+        if [ "$(uci get luci.main.mediaurlbase)" != '/luci-static/privaterouter' ]; then
+            log_say "Setting the PrivateRouter theme as the default"
+            uci set luci.main.mediaurlbase='/luci-static/privaterouter'
+            uci commit luci
+            log_say "PrivateRouter theme has been set as the default."
+        else
+            log_say "PrivateRouter theme is already set as the default."
+        fi
+    fi
 }
 
 # Check and fix dnsmsaq
@@ -205,17 +270,6 @@ if ! opkg list-installed | grep -q "^dnsmasq-full "; then
     fi
 fi 
 
-# Install v2ray
-if ! opkg list-installed | grep -q "^luci-app-v2ray "; then
-    log_say "Installing v2ray"
-    wget -qO /tmp/luci-app-v2ray_2.0.0-1_all.ipk https://github.com/kuoruan/luci-app-v2ray/releases/download/v2.0.0-1/luci-app-v2ray_2.0.0-1_all.ipk
-    if [ $? -eq 0 ]; then
-        log_say "v2ray downloaded, now installing."
-        opkg install --force-maintainer /tmp/luci-app-v2ray_2.0.0-1_all.ipk
-    else
-        log_say "v2ray did not download successfully."
-    fi
-fi 
 
 # All of this should be done in stage2.sh for new builds but leaving it here for now
 log_say "Installing packages with Docker Support"
