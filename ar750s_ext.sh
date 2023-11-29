@@ -153,6 +153,15 @@ opkg --no-check-certificate install wget-ssl unzip ca-bundle ca-certificates
 
 # Update and install all of our packages
 log_say "updating all packages!"
+ ## INSTALL MESH PROFILE ##
+log_say "Installing Mesh Packages..."
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
+opkg remove wpad-mbedtls wpad-basic-mbedtls wpad-basic-wolfssl wpad-basic-openssl wpad-wolfssl
+opkg remove wpad-basic-wolfssl
+opkg install wpad-mesh-openssl
+opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn
+opkg install luci-app-easymesh
+opkg install luci-proto-batman-adv
 
 #Go Go Packages
 opkg install base-files busybox ca-bundle cgi-io dnsmasq dropbear firewall fstools fwtool getrandom hostapd-common ip6tables iptables iw iwinfo jshn jsonfilter kernel

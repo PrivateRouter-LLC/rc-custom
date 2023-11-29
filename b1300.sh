@@ -149,32 +149,24 @@ fi # UPDATE_NEEDED check
 
 # Update and install all of our packages
 log_say "updating all packages!"
-opkg update
-log_say "mesh install!"
-opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
-opkg remove wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl wpad-mbedtls wpad-basic-mbedtls
-opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd batctl-full luci-app-dawn
-opkg install luci-app-easymesh
-opkg install /etc/luci-proto-batman-adv_git-22.104.47289-0a762fd_all.ipk
 
-#Go Go Packages
-opkg install base-files busybox ca-bundle cgi-io dnsmasq dropbear firewall fstools fwtool getrandom hostapd-common ip6tables iptables iw iwinfo jshn jsonfilter kernel
-opkg install kmod-ath kmod-ath9k kmod-ath9k-common kmod-cfg80211 kmod-gpio-button-hotplug kmod-ip6tables kmod-ipt-conntrack kmod-ipt-core kmod-ipt-nat kmod-ipt-offload
-opkg install kmod-lib-crc-ccitt kmod-mac80211 kmod-nf-conntrack kmod-nf-conntrack6 kmod-nf-flow kmod-nf-ipt kmod-nf-ipt6 kmod-nf-nat kmod-nf-reject kmod-nf-reject6 kmod-nls-base
-opkg install kmod-ppp kmod-pppoe kmod-pppox kmod-slhc kmod-usb-core kmod-usb-ehci libblobmsg-json20210516 libc libgcc1 libip4tc2 libip6tc2 libiwinfo-data libiwinfo-lua libiwinfo20210430
-opkg install libjson-c5 libjson-script20210516 liblua5.1.5 liblucihttp-lua liblucihttp0 libnl-tiny1 libpthread libubox20210516 libubus-lua libubus20210630 libuci20130104  git git-http jq
-opkg install libuclient20201210 libustream-wolfssl20201210 libxtables12 logd lua luci luci-app-firewall luci-app-opkg luci-base luci-lib-base luci-lib-ip luci-lib-jsonc luci-lib-nixio
+opkg update
+ ## INSTALL MESH PROFILE ##
+log_say "Installing Mesh Packages..."
+opkg install tgrouterappstore luci-app-shortcutmenu luci-app-poweroff luci-app-wizard
+opkg remove wpad-mbedtls wpad-basic-mbedtls wpad-basic wpad-basic-openssl wpad-basic-wolfssl wpad-wolfssl
+opkg install wpad-mesh-openssl kmod-batman-adv batctl avahi-autoipd mesh11sd batctl-full luci-app-dawn git jq
+opkg install luci-app-easymesh luci-mod-dashboard tgwireguard tgopenvpn luci-app-poweroff luci-lib-ipkg lua luci
+opkg install luci-proto-batman-adv luci-theme-argon luci-app-argon-config tgrouterappstore libiwinfo-lua libubus-lua
+opkg install base-files busybox cgi-io dropbear firewall
 opkg install luci-mod-admin-full luci-mod-network luci-mod-status luci-mod-system
-opkg install luci-proto-ipv6 luci-proto-ppp luci-ssl luci-theme-bootstrap luci-mod-dashboard
-opkg install netifd odhcp6c odhcpd-ipv6only openwrt-keyring opkg ppp ppp-mod-pppoe procd
-opkg install openwrt-keyring ppp ppp-mod-pppoe procd px5g-wolfssl kmod-usb-storage block-mount kmod-fs-ext4 kmod-fs-exfat fdisk luci-compat luci-lib-ipkg
 
 ## V2RAYA INSTALLER PREP ##
-log_say "Preparing for V2rayA..."
+##log_say "Preparing for V2rayA..."
 ## Remove DNSMasq
-opkg remove dnsmasq
+##opkg remove dnsmasq
 ## Install DNSMasq
-opkg install dnsmasq-full
+##opkg install dnsmasq-full
 ## Install V2ray Repo and packages
 #log_say "Installing V2rayA..."
 #wget https://downloads.sourceforge.net/project/v2raya/openwrt/v2raya.pub -O /etc/opkg/keys/94cc2a834fb0aa03
@@ -197,7 +189,7 @@ opkg install dnsmasq-full
 
 ## INSTALL ROUTER APP STORE ##
 log_say "Installing Router App Store..."
-opkg install tgrouterappstore luci-app-poweroff luci-app-wizard 
+##opkg install tgrouterappstore luci-app-poweroff luci-app-wizard 
 
 log_say "PrivateRouter update complete!"
 
